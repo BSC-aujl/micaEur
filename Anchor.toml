@@ -1,0 +1,23 @@
+[toolchain]
+anchor_version = "0.31.1"
+solana_version = "1.18.17"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+mica_eur = "FqyFQg8TEaxKNGd5LqHRMBKfNVQHeiohorXRiu2dATZX"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tests/tsconfig.json -t 1000000 tests/**/*.ts"
+test-unit = "yarn run ts-mocha -p ./tests/tsconfig.json -t 1000000 tests/unit/**/*.ts"
+test-kyc = "yarn run ts-mocha -p ./tests/tsconfig.json -t 1000000 tests/unit/kyc_oracle.spec.ts"
+test-token = "yarn run ts-mocha -p ./tests/tsconfig.json -t 1000000 tests/unit/token_mint.spec.ts"
