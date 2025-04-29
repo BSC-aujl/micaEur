@@ -11,6 +11,10 @@
     "test:token": "npx ts-mocha -p ./tests/tsconfig.json tests/unit/token_mint.spec.ts",
     "test:all": "./scripts/run-all-tests.sh",
     "test:full": "./scripts/run-all-tests.sh",
+    "test:smoke": "./tests/run-tests.sh smoke",
+    "test:functional": "./tests/run-tests.sh functional",
+    "test:extension": "./tests/run-tests.sh extension",
+    "test:comprehensive": "./tests/run-tests.sh all",
     "build": "./scripts/build-no-proxy.sh",
     "clean": "./scripts/run-clean-project.sh",
     "prepare": "husky install",
@@ -24,7 +28,7 @@
     "@solana/web3.js": "1.87.6",
     "dotenv-vault": "^1.26.2",
     "rpc-websockets": "^7.5.1",
-    "@dotenvx/dotenvx": "^0.5.2"
+    "dotenv": "^16.0.0"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",
