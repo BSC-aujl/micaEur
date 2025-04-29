@@ -198,6 +198,61 @@ This project has several types of tests to ensure the code quality:
    npm run test:full
    ```
 
+## Environment Setup
+
+This project uses dotenv.org vault for secure environment variable management across different environments (development, testing, production).
+
+### Using the dotenv.org Vault
+
+1. **Initial Setup**: Initialize the dotenv.org vault integration
+   ```bash
+   npm run setup:dotenv
+   ```
+   This will create necessary configuration files and set up your project with dotenv.org vault.
+
+2. **Generate Test Keys**: Create test keypairs and store them securely in the dotenv.org vault
+   ```bash
+   npm run setup:test-keys
+   ```
+   This generates keypairs for various authorities (mint, freeze, regulatory, etc.) and stores them in the vault.
+
+3. **Set Up Test Environment**: Configure and start a local Solana validator for testing
+   ```bash
+   # Basic setup
+   npm run setup:test-env
+   
+   # With program build
+   npm run setup:test-env -- --build
+   ```
+
+4. **Complete Setup**: Run all setup steps in sequence
+   ```bash
+   npm run setup:all
+   ```
+
+### Managing Environment Variables
+
+- **Push Changes**: Update the dotenv.org vault with your local environment variables
+  ```bash
+  npm run dotenv:push         # Push development environment
+  npm run dotenv:push:test    # Push test environment
+  ```
+
+- **Pull Changes**: Fetch the latest environment variables from the vault
+  ```bash
+  npm run dotenv:pull         # Pull development environment
+  npm run dotenv:pull:test    # Pull test environment
+  ```
+
+### Why dotenv.org Vault?
+
+- **Security**: Environment variables are encrypted and securely stored
+- **Team Collaboration**: Share environment configurations without exposing secrets
+- **Environment Separation**: Clear separation between development, test, and production environments
+- **CI/CD Integration**: Securely inject environment variables in continuous integration workflows
+
+For more information, visit [dotenv.org](https://dotenv.org/).
+
 ## Development Workflow
 
 This project uses Husky and lint-staged for pre-commit hooks to ensure code quality:

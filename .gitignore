@@ -41,3 +41,14 @@ build
 # Test artifacts
 test-results
 coverage
+
+# Security and key materials
+keys/
+*.pem
+*.key
+*.cert
+
+# Temporary files
+*.tmp
+*.bak
+.cache/

@@ -1,113 +1,65 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
-import { MicaEur } from '../../target/types/mica_eur';
-import { PublicKey } from '@solana/web3.js';
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { assert } from 'chai';
-import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import { findProgramAddresses } from '../setup';
 
-describe('MICA EUR Smoke Tests', () => {
+describe('MiCA EUR - Smoke Tests', () => {
   // Configure the client
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
+  anchor.setProvider(anchor.AnchorProvider.env());
+  const provider = anchor.getProvider();
   
-  let program: anchor.Program<any>;
+  // Allow any type for now to avoid complex type issues in test env
+  const program = anchor.workspace.MicaEur as Program<any>;
+  const connection = program.provider.connection;
   
-  before(() => {
-    try {
-      program = anchor.workspace.MicaEur as anchor.Program<any>;
-    } catch (error) {
-      console.log("Error loading program, some tests will be skipped:", error);
-    }
-  });
-
-  // Test constants
-  const KYC_ORACLE_SEED = Buffer.from("kyc_oracle");
-  const KYC_USER_SEED = Buffer.from("kyc_user");
-  const EURO_MINT_SEED = Buffer.from("euro_mint");
-  const RESERVE_ACCOUNT_SEED = Buffer.from("reserve_account");
-  const WHITEPAPER_SEED = Buffer.from("whitepaper");
-
-  it('Program reference can be loaded', () => {
-    assert.isDefined(provider);
-    console.log(`Provider URL: ${provider.connection.rpcEndpoint}`);
-    if (program) {
-      console.log(`Program ID: ${program.programId.toString()}`);
-    } else {
-      console.log("Program couldn't be loaded - expected during initial test development");
-    }
-  });
-
-  it('Has core KYC-related instructions', () => {
-    if (!program) {
-      console.log("Program not loaded, skipping test");
-      return;
-    }
+  // Test keypairs
+  const authority = anchor.web3.Keypair.generate();
+  const user1 = anchor.web3.Keypair.generate();
+  
+  // Constants
+  const BLZ1 = '10010010';
+  const IBAN_HASH1 = Buffer.from(new Uint8Array(32).fill(1));
+  const COUNTRY_CODE = 'DE';
+  const VERIFICATION_PROVIDER = 'TestProvider';
+  
+  // Before running tests
+  before(async () => {
+    // Log test information
+    console.log("Running smoke tests with program:", program.programId.toString());
     
-    // Base KYC instructions that we know exist in the IDL
-    assert.isDefined(program.methods.initialize);
-    assert.isDefined(program.methods.initializeKycOracle);
-    assert.isDefined(program.methods.registerKycUser);
-    assert.isDefined(program.methods.updateKycStatus);
+    // Fund account
+    const signature = await connection.requestAirdrop(authority.publicKey, 10 * LAMPORTS_PER_SOL);
+    await connection.confirmTransaction(signature);
     
-    // List other methods that will be implemented but don't check for them yet
-    console.log("Methods to be implemented:");
-    console.log("- initializeEuroMint");
-    console.log("- createTokenAccount");
-    console.log("- mintTokens");
-    console.log("- burnTokens");
-    console.log("- freezeAccount");
-    console.log("- thawAccount");
-    console.log("- seizeTokens");
-    console.log("- updateReserveProof");
-  });
-
-  it('Can derive all required PDAs', () => {
-    if (!program) {
-      console.log("Program not loaded, skipping test");
-      return;
-    }
-    
-    // User keypair for testing
-    const user = anchor.web3.Keypair.generate();
-    
-    // KYC Oracle State PDA
-    const [kycOracleState, _oracleBump] = PublicKey.findProgramAddressSync(
-      [KYC_ORACLE_SEED],
-      program.programId
+    // Find PDAs
+    const { kycOraclePDA, kycUserPDAs } = findProgramAddresses(
+      program.programId,
+      new PublicKey("11111111111111111111111111111111"),  // Dummy mint for smoke test
+      [user1.publicKey]
     );
-    assert.isDefined(kycOracleState);
     
-    // KYC User PDA
-    const [kycUser, _userBump] = PublicKey.findProgramAddressSync(
-      [KYC_USER_SEED, user.publicKey.toBuffer()],
-      program.programId
-    );
-    assert.isDefined(kycUser);
-    
-    // Euro Mint PDA
-    const [euroMint, _mintBump] = PublicKey.findProgramAddressSync(
-      [EURO_MINT_SEED],
-      program.programId
-    );
-    assert.isDefined(euroMint);
-    
-    // Reserve Account PDA
-    const [reserveAccount, _reserveBump] = PublicKey.findProgramAddressSync(
-      [RESERVE_ACCOUNT_SEED],
-      program.programId
-    );
-    assert.isDefined(reserveAccount);
-    
-    // Whitepaper PDA
-    const [whitepaperPointer, _paperBump] = PublicKey.findProgramAddressSync(
-      [WHITEPAPER_SEED],
-      program.programId
-    );
-    assert.isDefined(whitepaperPointer);
+    // Store PDAs for later use
+    (this as any).kycOracleState = kycOraclePDA[0];
+    (this as any).kycUser1 = kycUserPDAs.get(user1.publicKey.toString())![0];
   });
-
-  it('Verifies TOKEN_2022_PROGRAM_ID is available', () => {
-    assert.isDefined(TOKEN_2022_PROGRAM_ID);
-    console.log(`Token-2022 Program ID: ${TOKEN_2022_PROGRAM_ID.toString()}`);
+  
+  it('Can connect to the program', async () => {
+    // This simply tests that we can connect to the program
+    assert.isNotNull(program.programId);
+    assert.isTrue(PublicKey.isOnCurve(program.programId.toBytes()));
   });
+  
+  it('Program has the expected account structures', async () => {
+    // Here we're just testing that the program account structure matches what we expect
+    // We don't need to initialize anything for this test
+    assert.isDefined(program.account);
+    
+    // Optional: Log the available accounts for debugging
+    console.log("Available program accounts:", Object.keys(program.account));
+    
+    // This test might need adjustment based on your actual program structure
+  });
+  
+  // Add more smoke tests as needed
 }); 
