@@ -10,31 +10,34 @@ This project was developed for a hackathon to demonstrate the integration of Sol
 
 This project uses the following versions:
 
-| Component | Version |
-|-----------|---------|
-| Anchor | 0.31.1 |
-| Solana | 1.18.17 |
-| SPL Token-2022 | 2.0.6 |
-| SPL Token | 4.0.0 |
-| SPL Associated Token Account | 2.3.0 |
+| Component                    | Version |
+| ---------------------------- | ------- |
+| Anchor                       | 0.31.1  |
+| Solana                       | 1.18.17 |
+| SPL Token-2022               | 2.0.6   |
+| SPL Token                    | 4.0.0   |
+| SPL Associated Token Account | 2.3.0   |
 
 All version information is centralized in the `programs/mica_eur/src/versions.rs` file for easy maintenance.
 
 ## 🌟 Features
 
 - **Token-2022 Extensions**
+
   - DefaultAccountState (Frozen by default)
   - TransferHook (KYC verification)
   - Permanent Delegate (for regulatory compliance)
   - Metadata Pointer (for whitepaper and terms)
 
 - **MiCA Compliance**
+
   - KYC/AML verification for all users
   - Proof-of-reserve with daily merkle root
   - Freeze/seize capability for regulatory actions
   - Admin dashboard for monitoring
 
 - **Banking Integration**
+
   - PSD2 API for connecting to German bank accounts
   - SEPA Instant transfer for minting/redeeming
   - BLZ (German Bank Code) verification
@@ -88,12 +91,14 @@ All version information is centralized in the `programs/mica_eur/src/versions.rs
 ### Installation
 
 1. Clone the repository
+
 ```bash
 git clone https://github.com/yourusername/mica-eur.git
 cd mica-eur
 ```
 
 2. Install dependencies
+
 ```bash
 # Install Anchor dependencies
 yarn install
@@ -108,22 +113,26 @@ yarn install
 ```
 
 3. Build the Anchor program
+
 ```bash
 anchor build
 ```
 
 4. Deploy to Solana devnet
+
 ```bash
 anchor deploy --provider.cluster devnet
 ```
 
 5. Start the Compliance API
+
 ```bash
 cd app/compliance-api
 yarn start
 ```
 
 6. Start the frontend
+
 ```bash
 cd app/frontend
 yarn start
@@ -132,12 +141,14 @@ yarn start
 ## 📚 Demo Scenarios
 
 1. **Corporate Mint/Redeem**
+
    - KYC verification through Veriff
    - SEPA transfer to reserve account
    - Mint EUR tokens
    - Redeem back to bank account
 
 2. **Admin Functions**
+
    - View/update proof-of-reserve
    - Freeze/unfreeze accounts
    - View compliance dashboard
@@ -171,24 +182,27 @@ This project has several types of tests to ensure the code quality:
 ### Unit Tests
 
 1. **Rust Unit Tests** - These test internal functions of the Solana programs
+
    ```bash
    cd programs/mica_eur
    cargo test
    ```
 
 2. **TypeScript Unit Tests** - These test specific modules:
+
    ```bash
    # Run all unit tests
    npm run test:unit
-   
+
    # Run only KYC Oracle tests
    npm run test:kyc
-   
+
    # Run only Token-2022 mint tests
    npm run test:token
    ```
 
 3. **Integration Tests** - These test the whole program:
+
    ```bash
    npm run test
    ```
@@ -205,22 +219,27 @@ This project uses dotenv.org vault for secure environment variable management ac
 ### Using the dotenv.org Vault
 
 1. **Initial Setup**: Initialize the dotenv.org vault integration
+
    ```bash
    npm run setup:dotenv
    ```
+
    This will create necessary configuration files and set up your project with dotenv.org vault.
 
 2. **Generate Test Keys**: Create test keypairs and store them securely in the dotenv.org vault
+
    ```bash
    npm run setup:test-keys
    ```
+
    This generates keypairs for various authorities (mint, freeze, regulatory, etc.) and stores them in the vault.
 
 3. **Set Up Test Environment**: Configure and start a local Solana validator for testing
+
    ```bash
    # Basic setup
    npm run setup:test-env
-   
+
    # With program build
    npm run setup:test-env -- --build
    ```
@@ -233,6 +252,7 @@ This project uses dotenv.org vault for secure environment variable management ac
 ### Managing Environment Variables
 
 - **Push Changes**: Update the dotenv.org vault with your local environment variables
+
   ```bash
   npm run dotenv:push         # Push development environment
   npm run dotenv:push:test    # Push test environment
@@ -259,20 +279,69 @@ This project uses Husky and lint-staged for pre-commit hooks to ensure code qual
 
 1. **Linting**: All JS/TS files are linted with ESLint and formatted with Prettier
 2. **Formatting**: Rust files are formatted with rustfmt
-3. **Testing**: Unit tests are run to ensure your changes don't break existing functionality
+3. **Signature Verification**: Critical files must have properly signed changes
+4. **Type Checking**: Function signatures are verified for proper typing
+5. **Smoke Tests**: Fast tests are run to catch critical issues before commit
+6. **Building**: The Anchor program is built to ensure it compiles
 
 ### Pre-commit Hooks
 
 The pre-commit hook runs:
+
 1. Lint staged files
-2. Build the Anchor program
-3. Run unit tests
+2. Verify signatures in critical files (Rust program, scripts)
+3. Verify type signatures in functions and programs
+4. Build the Anchor program
+5. Run smoke tests
 
 If any of these steps fail, the commit will be aborted.
+
+### Bypassing Pre-commit Hooks
+
+In some cases (like initial setup or emergency fixes), you may need to bypass pre-commit hooks. Use the force-commit script:
+
+```bash
+./scripts/force-commit.sh "Your commit message"
+```
+
+**Warning**: This should be used sparingly and only for good reasons. Always run the full test suite after using this.
+
+### Code Signatures
+
+Critical code files (like the Solana program code) should include a signature to verify their authenticity:
+
+```rust
+// Signature: Base64EncodedSignatureHere
+pub fn important_function() -> Result<()> {
+    // Function implementation
+}
+```
+
+You can verify signatures using:
+
+```bash
+npm run verify:signatures
+```
+
+### Type Verification
+
+Function signatures in both Rust and TypeScript should be properly typed. The type verification script checks for:
+
+- Missing return types in Rust functions
+- Missing parameter types in functions
+- Use of 'any' type in TypeScript
+- Missing derive macros on Rust structs
+
+You can verify types using:
+
+```bash
+npm run verify:types
+```
 
 ### CI/CD
 
 GitHub Actions workflows are set up to run on push and pull requests:
+
 1. `ci.yml`: Runs linting and formatting checks
 2. `test.yml`: Builds the project and runs all tests
 
@@ -281,8 +350,9 @@ GitHub Actions workflows are set up to run on push and pull requests:
 This project implements a regulated stablecoin for the Euro according to the Markets in Crypto-Assets (MiCA) regulation.
 
 Key Features:
+
 - Token-2022 extensions for compliance
 - KYC Oracle for user verification
 - Freeze functionality for compliance actions
 - Reserve proof verification
-- Admin dashboard for regulatory oversight 
+- Admin dashboard for regulatory oversight

@@ -1,0 +1,279 @@
+{
+  "version": "0.1.0",
+  "name": "mica_eur",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "initializeKycOracle",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "oracleState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "registerKycUser",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "oracleState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "kycUser",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "blz",
+          "type": "string"
+        },
+        {
+          "name": "ibanHash",
+          "type": {
+            "array": ["u8", 32]
+          }
+        },
+        {
+          "name": "countryCode",
+          "type": "string"
+        },
+        {
+          "name": "verificationProvider",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "updateKycStatus",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "oracleState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "kycUser",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "status",
+          "type": {
+            "defined": "KycStatus"
+          }
+        },
+        {
+          "name": "verificationLevel",
+          "type": "u8"
+        },
+        {
+          "name": "expiryDays",
+          "type": "i64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "KycOracleState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "name": "adminCount",
+            "type": "u8"
+          },
+          {
+            "name": "totalVerifiedUsers",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "KycUser",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "user",
+            "type": "publicKey"
+          },
+          {
+            "name": "blz",
+            "type": "string"
+          },
+          {
+            "name": "ibanHash",
+            "type": {
+              "array": ["u8", 32]
+            }
+          },
+          {
+            "name": "countryCode",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": "KycStatus"
+            }
+          },
+          {
+            "name": "verificationLevel",
+            "type": "u8"
+          },
+          {
+            "name": "verificationDate",
+            "type": "i64"
+          },
+          {
+            "name": "expiryDate",
+            "type": "i64"
+          },
+          {
+            "name": "verificationProvider",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MintInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "issuer",
+            "type": "publicKey"
+          },
+          {
+            "name": "freezeAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "permanentDelegate",
+            "type": "publicKey"
+          },
+          {
+            "name": "whitepaperUri",
+            "type": "string"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "name": "creationTime",
+            "type": "i64"
+          },
+          {
+            "name": "reserveMerkleRoot",
+            "type": {
+              "array": ["u8", 32]
+            }
+          },
+          {
+            "name": "reserveIpfsCid",
+            "type": "string"
+          },
+          {
+            "name": "lastReserveUpdate",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "KycStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Verified"
+          },
+          {
+            "name": "Rejected"
+          },
+          {
+            "name": "Revoked"
+          }
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "address": "11111111111111111111111111111111"
+  }
+}

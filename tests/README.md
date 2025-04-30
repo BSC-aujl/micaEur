@@ -1,35 +1,64 @@
 # MiCA EUR Tests
 
-This directory contains tests for the MiCA EUR stablecoin implementation, covering all requirements for Milestone 1.1.
+This directory contains the tests for the MiCA EUR stablecoin project.
 
 ## Test Structure
 
-The tests are organized in a three-tier structure:
+- `unit/`: Unit tests for individual components
+- `functional/`: Functional tests for complete user flows
+- `fixtures/`: Test fixtures and data used by tests
 
-1. **Unit Tests** (`tests/unit/`): Test individual components in isolation
-2. **Integration Tests** (`tests/`): Test interactions between components
-3. **Functional Tests** (`tests/functional/`): End-to-end tests for complete workflows
+## Running Tests
 
-## Running the Tests
+The project uses a dedicated test environment with isolated test keypairs instead of your default Solana wallet. This ensures test isolation and prevents potential issues with your main wallet.
 
-To run all tests:
-
-```bash
-npm run test:all
-```
-
-To run specific test categories:
+### Running All Tests
 
 ```bash
-# Run unit tests only
-npm run test:unit
-
-# Run KYC Oracle tests only
-npm run test:kyc
-
-# Run token mint tests only
-npm run test:token
+./scripts/run-tests.sh
 ```
+
+### Running Only Unit Tests
+
+```bash
+./scripts/run-tests.sh --unit
+```
+
+### Running Only Functional Tests
+
+```bash
+./scripts/run-tests.sh --functional
+```
+
+### Running a Specific Test File
+
+```bash
+./scripts/run-tests.sh --file tests/unit/smoke.spec.ts
+```
+
+### Regenerating Test Keypairs
+
+```bash
+./scripts/run-tests.sh --regenerate-keypairs
+```
+
+## Smoke Tests
+
+For a quick validation of the environment, you can run the smoke tests:
+
+```bash
+./scripts/run-smoke-test.sh
+```
+
+## Test Keypairs
+
+The tests use dedicated keypairs located in the `test-keypairs/` directory:
+
+- `payer.json`: Used as the fee payer for transactions
+- `authority.json`: Used as the authority for administrative operations
+- `user1.json`, `user2.json`, `user3.json`: Test user accounts
+
+These keypairs are automatically generated and funded when running tests for the first time.
 
 ## Test Requirements Coverage
 
@@ -40,6 +69,7 @@ The test suite covers all requirements for Milestone 1.1 as detailed below.
 #### DefaultAccountState (Frozen by default)
 
 - **Unit Tests**: `tests/unit/token_extensions.test.ts`
+
   - `Creates token accounts in frozen state` - Verifies new accounts are frozen by default
   - `Allows thawing accounts after KYC verification` - Tests thawing process
 
@@ -50,6 +80,7 @@ The test suite covers all requirements for Milestone 1.1 as detailed below.
 #### TransferHook (KYC verification)
 
 - **Unit Tests**: `tests/unit/token_extensions.test.ts`
+
   - `Initializes with the correct transfer hook program` - Verifies proper setup
   - `Enforces KYC verification for both sender and receiver` - Tests KYC requirements
   - `Enforces transaction limits based on KYC level` - Tests tier-based limits
@@ -63,7 +94,8 @@ The test suite covers all requirements for Milestone 1.1 as detailed below.
 
 #### PermanentDelegate (for regulatory compliance)
 
-- **Unit Tests**: `tests/unit/token_extensions.test.ts` 
+- **Unit Tests**: `tests/unit/token_extensions.test.ts`
+
   - `Sets the correct permanent delegate on the mint` - Verifies setup
   - `Allows token seizure by the permanent delegate` - Tests seizure capability
   - `Prevents token seizure by unauthorized accounts` - Tests authorization
@@ -110,6 +142,7 @@ The test suite covers all requirements for Milestone 1.1 as detailed below.
 #### Token Seizure
 
 - **Unit Tests**: `tests/unit/freeze_seize.test.ts`
+
   - `Supports court-ordered seizure by regulatory delegate` - Tests court orders
   - `Maintains complete audit trail of seizure actions` - Tests audit trail
   - `Only allows authorized regulatory delegates to seize tokens` - Tests authorization
@@ -132,6 +165,7 @@ The KYC Oracle component is a critical part of the MiCA EUR implementation, as i
 Compliance tracking is tested across various test files:
 
 - **Unit Tests**: `tests/unit/freeze_seize.test.ts`
+
   - `Records reason codes for regulatory actions` - Tests reason tracking
   - `Provides compliance reports for regulatory actions` - Tests reporting
   - `Tracks risk factors for accounts` - Tests risk monitoring
@@ -144,6 +178,7 @@ Compliance tracking is tested across various test files:
 Reserve management is a critical requirement for MiCA compliance, ensuring 1:1 backing of the stablecoin:
 
 - **Unit Tests**: `tests/unit/mint_redeem.test.ts`
+
   - `Maintains proper reserve ratio` - Tests 1:1 backing
   - `Updates reserve proof with correct information` - Tests proof updates
   - `Prevents manipulation of reserve proof` - Tests security
@@ -154,8 +189,9 @@ Reserve management is a critical requirement for MiCA compliance, ensuring 1:1 b
 ## Notes on Test Implementation
 
 The test files contain placeholders in some places marked with:
+
 - `TODO` comments for future implementation details
 - `console.log` statements explaining what would be tested in a complete implementation
 - Some tests simulate functionality that would require time manipulation or blockchain state changes
 
-These placeholders are intentional and should be replaced with actual implementations as the codebase develops. 
+These placeholders are intentional and should be replaced with actual implementations as the codebase develops.
