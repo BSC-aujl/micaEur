@@ -89,10 +89,10 @@ function validateTestFile(filePath) {
   
   // Check for proper imports from test framework
   if (!content.includes('import') || 
-      !content.includes('from \'../framework/') && 
+      !content.includes('from \'../utils/') && 
       !content.includes('import { assert } from \'chai\'') && 
       !content.includes('import { expect } from \'chai\'')) {
-    issues.push('Missing imports from test framework or chai');
+    issues.push('Missing imports from test utilities or chai');
   }
   
   // Check for proper describe/it structure

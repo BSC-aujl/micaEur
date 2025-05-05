@@ -2,15 +2,16 @@ import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { MicaEur } from '../../target/types/mica_eur';
 import { 
-  TOKEN_2022_PROGRAM_ID,
-  createAssociatedTokenAccountInstruction,
-  getAssociatedTokenAddressSync,
-  createMintToInstruction,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID, 
+  createMint, 
+  createAccount, 
+  mintTo, 
+  freezeAccount, 
+  thawAccount,
   getAccount,
-  Account,
-  AccountState
-} from '@solana/spl-token-2022';
+  TokenAccountNotFoundError,
+  TOKEN_2022_PROGRAM_ID
+} from '@solana/spl-token';
 import { PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction } from '@solana/web3.js';
 import { assert } from 'chai';
 
@@ -108,29 +109,32 @@ describe('Freeze and Seize Unit Tests', () => {
     );
     
     // Calculate associated token accounts
-    user1TokenAccount = getAssociatedTokenAddressSync(
-      euroMint,
-      user1.publicKey,
-      false,
-      TOKEN_2022_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID
-    );
+    user1TokenAccount = PublicKey.findProgramAddressSync(
+      [
+        TOKEN_PROGRAM_ID,
+        euroMint,
+        user1.publicKey
+      ],
+      program.programId
+    )[0];
     
-    user2TokenAccount = getAssociatedTokenAddressSync(
-      euroMint,
-      user2.publicKey,
-      false,
-      TOKEN_2022_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID
-    );
+    user2TokenAccount = PublicKey.findProgramAddressSync(
+      [
+        TOKEN_PROGRAM_ID,
+        euroMint,
+        user2.publicKey
+      ],
+      program.programId
+    )[0];
     
-    sanctionedUserTokenAccount = getAssociatedTokenAddressSync(
-      euroMint,
-      sanctionedUser.publicKey,
-      false,
-      TOKEN_2022_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID
-    );
+    sanctionedUserTokenAccount = PublicKey.findProgramAddressSync(
+      [
+        TOKEN_PROGRAM_ID,
+        euroMint,
+        sanctionedUser.publicKey
+      ],
+      program.programId
+    )[0];
     
     // Initialize the KYC Oracle
     await program.methods
@@ -150,29 +154,26 @@ describe('Freeze and Seize Unit Tests', () => {
     // Create token accounts for users
     const createAccountsTx = new Transaction();
     createAccountsTx.add(
-      createAssociatedTokenAccountInstruction(
+      createAccount(
         payer.publicKey,
         user1TokenAccount,
         user1.publicKey,
         euroMint,
-        TOKEN_2022_PROGRAM_ID,
-        ASSOCIATED_TOKEN_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       ),
-      createAssociatedTokenAccountInstruction(
+      createAccount(
         payer.publicKey,
         user2TokenAccount,
         user2.publicKey,
         euroMint,
-        TOKEN_2022_PROGRAM_ID,
-        ASSOCIATED_TOKEN_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       ),
-      createAssociatedTokenAccountInstruction(
+      createAccount(
         payer.publicKey,
         sanctionedUserTokenAccount,
         sanctionedUser.publicKey,
         euroMint,
-        TOKEN_2022_PROGRAM_ID,
-        ASSOCIATED_TOKEN_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       )
     );
     
@@ -273,29 +274,26 @@ describe('Freeze and Seize Unit Tests', () => {
     // Mint initial tokens to users
     const mintTx = new Transaction();
     mintTx.add(
-      createMintToInstruction(
+      mintTo(
         euroMint,
         user1TokenAccount,
         mintAuthority.publicKey,
         INITIAL_AMOUNT,
-        [],
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       ),
-      createMintToInstruction(
+      mintTo(
         euroMint,
         user2TokenAccount,
         mintAuthority.publicKey,
         INITIAL_AMOUNT,
-        [],
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       ),
-      createMintToInstruction(
+      mintTo(
         euroMint,
         sanctionedUserTokenAccount,
         mintAuthority.publicKey,
         INITIAL_AMOUNT,
-        [],
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       )
     );
     
@@ -324,7 +322,7 @@ describe('Freeze and Seize Unit Tests', () => {
           kycOracleState: kycOracleState,
           kycUser: sanctionedUserKycAccount,
           freezeAuthority: freezeAuthority.publicKey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
         })
         .signers([freezeAuthority])
         .rpc();
@@ -333,7 +331,7 @@ describe('Freeze and Seize Unit Tests', () => {
       const accountInfo = await getAccount(
         provider.connection,
         sanctionedUserTokenAccount,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       );
       
       assert.equal(accountInfo.state, AccountState.Frozen);
@@ -355,7 +353,7 @@ describe('Freeze and Seize Unit Tests', () => {
           kycOracleState: kycOracleState,
           kycUser: user1KycAccount,
           freezeAuthority: freezeAuthority.publicKey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
         })
         .signers([freezeAuthority])
         .rpc();
@@ -377,7 +375,7 @@ describe('Freeze and Seize Unit Tests', () => {
       const beforeAccountInfo = await getAccount(
         provider.connection,
         sanctionedUserTokenAccount,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       );
       
       const beforeBalance = beforeAccountInfo.amount;
@@ -393,7 +391,7 @@ describe('Freeze and Seize Unit Tests', () => {
           kycOracleState: kycOracleState,
           kycUser: sanctionedUserKycAccount,
           authority: regulatoryAuthority.publicKey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
         })
         .signers([regulatoryAuthority])
         .rpc();
@@ -402,7 +400,7 @@ describe('Freeze and Seize Unit Tests', () => {
       const afterAccountInfo = await getAccount(
         provider.connection,
         sanctionedUserTokenAccount,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       );
       
       const afterBalance = afterAccountInfo.amount;
@@ -415,7 +413,7 @@ describe('Freeze and Seize Unit Tests', () => {
       const reserveAccountInfo = await getAccount(
         provider.connection,
         reserve,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       );
       
       assert.isTrue(reserveAccountInfo.amount >= beforeBalance);
@@ -438,7 +436,7 @@ describe('Freeze and Seize Unit Tests', () => {
           kycOracleState: kycOracleState,
           kycUser: user1KycAccount,
           authority: regulatoryAuthority.publicKey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
         })
         .signers([regulatoryAuthority])
         .rpc();
@@ -476,7 +474,7 @@ describe('Freeze and Seize Unit Tests', () => {
           kycOracleState: kycOracleState,
           kycUser: sanctionedUserKycAccount,
           freezeAuthority: freezeAuthority.publicKey,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
         })
         .signers([freezeAuthority])
         .rpc();
@@ -485,7 +483,7 @@ describe('Freeze and Seize Unit Tests', () => {
       const accountInfo = await getAccount(
         provider.connection,
         sanctionedUserTokenAccount,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       );
       
       assert.equal(accountInfo.state, AccountState.Initialized);

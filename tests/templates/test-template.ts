@@ -1,16 +1,18 @@
 /**
- * Test Template
+ * TEST_TITLE Tests
  *
- * This template can be used as a starting point for creating new test files.
- * Copy this file and rename it with the .test.ts extension.
+ * Created: CREATED_DATE
+ * Test Type: TEST_TYPE
+ *
+ * This file contains tests for the TEST_NAME functionality.
  */
 
 import { assert } from "chai";
-import { PublicKey } from "@solana/web3.js";
-import { setupTestContext } from "../framework/setup";
-import { TestContext } from "../framework/types";
+import { PublicKey, Keypair } from "@solana/web3.js";
+import { setupTestContext } from "../utils/setup";
+import { TestContext } from "../utils/types";
 
-describe("Feature Name", () => {
+describe("TEST_TITLE", () => {
   let context: TestContext;
 
   // Set up the test context once for all tests
@@ -18,7 +20,7 @@ describe("Feature Name", () => {
     context = await setupTestContext();
   });
 
-  describe("Sub-feature or Component", () => {
+  describe("Basic Functionality", () => {
     // Setup for this specific sub-feature
     beforeEach(async () => {
       // Setup code specific to each test
@@ -51,7 +53,7 @@ describe("Feature Name", () => {
     });
   });
 
-  describe("Another Sub-feature", () => {
+  describe("Advanced Functionality", () => {
     // You can organize tests in multiple describe blocks
     it("should work correctly", async () => {
       assert.isDefined(context.program);

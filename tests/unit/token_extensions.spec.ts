@@ -18,6 +18,14 @@ import {
 } from '@solana/spl-token-2022';
 import { PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction } from '@solana/web3.js';
 import { assert } from 'chai';
+import {
+  TOKEN_PROGRAM_ID,
+  createMint,
+  createAccount,
+  mintTo,
+  getAccount,
+  TokenAccountNotFoundError
+} from '@solana/spl-token';
 
 describe('Token Extensions Unit Tests', () => {
   // Configure the client

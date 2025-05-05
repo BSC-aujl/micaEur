@@ -27,12 +27,12 @@ describe("Basic Mica EUR Tests", () => {
   // Test that the Mica EUR structure matches our expectations
   it("Has correct kyc_oracle structure", () => {
     // Define KYC status to match the Rust code
-    enum KycStatus {
-      Unverified,
-      Pending,
-      Verified,
-      Rejected
-    }
+    const KycStatus = {
+      Unverified: 0,
+      Pending: 1,
+      Verified: 2,
+      Rejected: 3
+    };
     
     // Ensure the enum matches expected values
     assert.equal(KycStatus.Unverified, 0);

@@ -16,12 +16,20 @@ import {
   addToBlacklist,
   updateBlacklistEntry,
   removeFromBlacklist,
+  getBlacklistEntry,
   isBlacklisted,
+  listBlacklistedUsers,
+  blacklistOnKycRevocation,
   getBlacklistStatus,
 } from "../utils/blacklist-helpers";
-import { BlacklistReason, BlacklistActionType } from "../utils/types";
+import {
+  TestContext,
+  BlacklistReason,
+  BlacklistActionType,
+} from "../utils/types";
 import { assert } from "chai";
-import { setupTestContext } from '../framework/setup';
+import { setupTestContext } from "../utils/setup";
+import { initializeKycOracle } from "../utils/kyc-oracle-helpers";
 
 describe("Blacklist Functionality Tests", () => {
   // Test context setup
