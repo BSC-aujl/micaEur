@@ -33,7 +33,7 @@ import { initializeKycOracle } from "../utils/kyc-oracle-helpers";
 
 describe("Blacklist Functionality Tests", () => {
   // Test context setup
-  let context: any;
+  let context: any; // Using any to avoid type conflicts between different TestContext definitions
 
   // User keypairs
   let normalUser: Keypair;

@@ -8,7 +8,7 @@
  */
 
 import { assert } from "chai";
-import { PublicKey, Keypair } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { setupTestContext } from "../utils/setup";
 import { TestContext } from "../utils/types";
 

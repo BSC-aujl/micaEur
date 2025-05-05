@@ -21,7 +21,6 @@ const TEST_DIR = path.join(process.cwd(), 'tests');
 const UNIT_TEST_DIR = path.join(TEST_DIR, 'unit');
 const INTEGRATION_TEST_DIR = path.join(TEST_DIR, 'integration');
 const E2E_TEST_DIR = path.join(TEST_DIR, 'e2e');
-const UTILS_DIR = path.join(TEST_DIR, 'utils');
 
 // Color codes for console output
 const COLOR = {
