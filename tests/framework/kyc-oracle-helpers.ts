@@ -1,18 +1,20 @@
-import * as anchor from '@coral-xyz/anchor';
-import { PublicKey, Keypair, SystemProgram } from '@solana/web3.js';
-import { KycStatus, KycVerificationLevel } from './types';
-import { TestContext } from './setup';
-
 /**
  * Helper functions for KYC Oracle testing
+ *
+ * These functions assist with initializing the KYC Oracle,
+ * registering users, and managing KYC verification status.
  */
+
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey, Keypair, SystemProgram } from "@solana/web3.js";
+import { TestContext, KycStatus } from "./types";
 
 /**
  * Find the KYC Oracle PDA
  */
 export function findKycOraclePDA(programId: PublicKey): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from('kyc_oracle')],
+    [Buffer.from("kyc_oracle")],
     programId
   );
 }
@@ -25,7 +27,7 @@ export function findKycUserPDA(
   programId: PublicKey
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from('kyc_user'), userPubkey.toBuffer()],
+    [Buffer.from("kyc_user"), userPubkey.toBuffer()],
     programId
   );
 }
@@ -38,12 +40,12 @@ export async function initializeKycOracle(
   authority?: PublicKey
 ): Promise<PublicKey> {
   const [oraclePDA] = await PublicKey.findProgramAddress(
-    [Buffer.from('kyc-oracle')],
+    [Buffer.from("kyc-oracle")],
     context.program.programId
   );
-  
+
   const authorityPubkey = authority || context.keypairs.authority.publicKey;
-  
+
   try {
     await context.program.methods
       .initializeKycOracle()
@@ -54,7 +56,7 @@ export async function initializeKycOracle(
       })
       .signers([context.keypairs.authority])
       .rpc();
-    
+
     return oraclePDA;
   } catch (error) {
     throw new Error(`Failed to initialize KYC Oracle: ${error.message}`);
@@ -84,17 +86,17 @@ export async function registerKycUser(
     verificationLevel,
     countryCode,
     verificationProvider,
-    authorityKeypair = context.keypairs.authority
+    authorityKeypair = context.keypairs.authority,
   } = params;
-  
+
   // Get the KYC Oracle PDA
   if (!context.accounts.kycOracle) {
     await initializeKycOracle(context, authorityKeypair.publicKey);
   }
-  
+
   // Calculate the KYC User PDA
   const [kycUserPDA] = findKycUserPDA(userKeypair.publicKey, program.programId);
-  
+
   try {
     // Check if already registered
     await program.account.kycUser.fetch(kycUserPDA);
@@ -114,14 +116,14 @@ export async function registerKycUser(
         kycOracle: context.accounts.kycOracle,
         user: userKeypair.publicKey,
         kycUser: kycUserPDA,
-        systemProgram: anchor.web3.SystemProgram.programId
+        systemProgram: anchor.web3.SystemProgram.programId,
       })
       .signers([authorityKeypair, userKeypair])
       .rpc();
-  
+
     // console.log('KYC User registered for', userKeypair.publicKey.toString());
   }
-  
+
   return kycUserPDA;
 }
 
@@ -144,25 +146,21 @@ export async function updateKycStatus(
     status,
     verificationLevel,
     expiryDays,
-    authorityKeypair = context.keypairs.authority
+    authorityKeypair = context.keypairs.authority,
   } = params;
-  
+
   // Get the KYC Oracle PDA
   if (!context.accounts.kycOracle) {
     await initializeKycOracle(context, authorityKeypair.publicKey);
   }
-  
+
   // Update KYC status
   await program.methods
-    .updateKycStatus(
-      status,
-      verificationLevel,
-      expiryDays
-    )
+    .updateKycStatus(status, verificationLevel, expiryDays)
     .accounts({
       authority: authorityKeypair.publicKey,
       kycOracle: context.accounts.kycOracle,
-      kycUser: kycUserPDA
+      kycUser: kycUserPDA,
     })
     .signers([authorityKeypair])
     .rpc();
@@ -188,10 +186,9 @@ export async function isKycVerified(
 ): Promise<boolean> {
   const kycUser = await fetchKycUser(context, kycUserPDA);
   const currentTime = Math.floor(Date.now() / 1000);
-  
+
   // User is verified if status is 'verified' and not expired
   return (
-    'verified' in kycUser.status &&
-    Number(kycUser.expiryDate) > currentTime
+    "verified" in kycUser.status && Number(kycUser.expiryDate) > currentTime
   );
-} 
+}

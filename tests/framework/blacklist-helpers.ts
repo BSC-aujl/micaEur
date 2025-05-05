@@ -1,6 +1,6 @@
 /**
  * Helper functions for blacklist management
- * 
+ *
  * These functions assist with maintaining the blacklist - adding, updating, and removing users,
  * as well as checking blacklist status.
  */
@@ -8,26 +8,23 @@
 // Signature: ZHVtbXlfc2lnbmF0dXJlX2Zvcl9ibGFja2xpc3RfaGVscGVycw==
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PublicKey, SystemProgram } from '@solana/web3.js';
-import { 
-  TestContext, 
-  BlacklistEntry, 
+import { PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  TestContext,
+  BlacklistEntry,
   BlacklistReason,
-  BlacklistActionType
-} from './types';
+  BlacklistActionType,
+} from "./types";
 
 /**
  * Finds the PDA for a blacklist entry
  */
 export async function findBlacklistPDA(
-  programId: PublicKey, 
+  programId: PublicKey,
   userPublicKey: PublicKey
 ): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddress(
-    [
-      Buffer.from('blacklist'),
-      userPublicKey.toBuffer(),
-    ],
+    [Buffer.from("blacklist"), userPublicKey.toBuffer()],
     programId
   );
   return pda;
@@ -55,7 +52,7 @@ export async function addToBlacklist(
   await context.program.methods
     .addToBlacklist(
       params.reason || BlacklistReason.Other,
-      params.evidence || 'No evidence provided',
+      params.evidence || "No evidence provided",
       params.expiryDate || 0, // 0 means permanent
       params.actionType || BlacklistActionType.Freeze,
       params.actionData || Buffer.from([])
@@ -140,7 +137,9 @@ export async function getBlacklistEntry(
   );
 
   try {
-    return await (context.program.account as any).blacklistEntry.fetch(blacklistPDA) as BlacklistEntry;
+    return (await (context.program.account as any).blacklistEntry.fetch(
+      blacklistPDA
+    )) as BlacklistEntry;
   } catch (error) {
     // Entry doesn't exist
     return null;
@@ -154,7 +153,7 @@ export async function listBlacklistEntries(
   context: TestContext
 ): Promise<BlacklistEntry[]> {
   const entries = await (context.program.account as any).blacklistEntry.all();
-  return entries.map(entry => entry.account as BlacklistEntry);
+  return entries.map((entry) => entry.account as BlacklistEntry);
 }
 
 /**
@@ -200,7 +199,9 @@ export async function getBlacklistStatus(
   const now = Math.floor(Date.now() / 1000);
   const isTemporary = entry.expiryDate > 0;
   const isExpired = isTemporary && entry.expiryDate < now;
-  const remainingTime = isTemporary ? Math.max(0, entry.expiryDate - now) : undefined;
+  const remainingTime = isTemporary
+    ? Math.max(0, entry.expiryDate - now)
+    : undefined;
 
   return {
     isBlacklisted: !isExpired,
@@ -210,4 +211,48 @@ export async function getBlacklistStatus(
     isTemporary,
     remainingTime,
   };
-} 
+}
+
+/**
+ * Lists all blacklisted users (alias for listBlacklistEntries)
+ */
+export async function listBlacklistedUsers(
+  context: TestContext
+): Promise<BlacklistEntry[]> {
+  return listBlacklistEntries(context);
+}
+
+/**
+ * Blacklists a user when their KYC is revoked
+ */
+export async function blacklistOnKycRevocation(
+  context: TestContext,
+  params: {
+    userPublicKey: PublicKey;
+    userKycPDA: PublicKey;
+    evidence?: string;
+    actionType?: BlacklistActionType;
+  }
+): Promise<void> {
+  // 1. Blacklist the user
+  await addToBlacklist(context, {
+    userPublicKey: params.userPublicKey,
+    reason: BlacklistReason.KycRevoked,
+    evidence: params.evidence || "KYC verification revoked",
+    actionType: params.actionType || BlacklistActionType.Freeze,
+  });
+
+  // 2. Update the user's KYC status to rejected
+  await context.program.methods
+    .updateKycStatus(
+      { rejected: {} },
+      0, // Reset verification level to 0
+      0 // Reset expiry date
+    )
+    .accounts({
+      kycUser: params.userKycPDA,
+      authority: context.keypairs.authority.publicKey,
+    })
+    .signers([context.keypairs.authority])
+    .rpc();
+}
