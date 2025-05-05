@@ -78,7 +78,13 @@ pub struct UpdateKycStatus<'info> {
     pub authority: Signer<'info>,
     
     #[account(
+        mut,
+        seeds = [KYC_ORACLE_SEED],
+        bump,
         constraint = oracle_state.authority == authority.key()
+            @ ProgramError::InvalidAccountData,
+        constraint = oracle_state.is_active
+            @ ProgramError::InvalidAccountData
     )]
     pub oracle_state: Account<'info, KycOracleState>,
     
