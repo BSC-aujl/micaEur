@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Set this variable to 1 to enable fast failing
+export FORCE_EXIT_ON_ERROR=1
+
 # Run the precommit script which handles linting, formatting, building, and testing
-npm run precommit 
+npm run precommit || exit 1 

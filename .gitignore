@@ -52,3 +52,8 @@ keys/
 *.tmp
 *.bak
 .cache/
+
+# Coverage reports
+coverage/
+.nyc_output/
+*.lcov
