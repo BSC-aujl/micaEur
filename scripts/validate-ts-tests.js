@@ -16,10 +16,12 @@
 const fs = require('fs');
 const path = require('path');
 
-// Configuration
+// Constants
 const TEST_DIR = path.join(process.cwd(), 'tests');
-const NEW_APPROACH_DIR = path.join(TEST_DIR, 'new-approach');
-const TS_TEST_PATTERN = /\.test\.ts$/;
+const UNIT_TEST_DIR = path.join(TEST_DIR, 'unit');
+const INTEGRATION_TEST_DIR = path.join(TEST_DIR, 'integration');
+const E2E_TEST_DIR = path.join(TEST_DIR, 'e2e');
+const UTILS_DIR = path.join(TEST_DIR, 'utils');
 
 // Color codes for console output
 const COLOR = {
@@ -36,40 +38,48 @@ function log(message, color = COLOR.reset) {
   console.log(`${color}${message}${COLOR.reset}`);
 }
 
-// Get all TypeScript test files
+// Function to get all test files
 function getTestFiles() {
-  try {
-    const allFiles = [];
-    
-    // Get files from new-approach directory
-    if (fs.existsSync(NEW_APPROACH_DIR)) {
-      const newApproachFiles = fs.readdirSync(NEW_APPROACH_DIR)
-        .filter(file => TS_TEST_PATTERN.test(file))
-        .map(file => path.join(NEW_APPROACH_DIR, file));
-      
-      allFiles.push(...newApproachFiles);
+  const testFiles = [];
+
+  // Get files from unit tests directory
+  const unitFiles = fs.readdirSync(UNIT_TEST_DIR, { withFileTypes: true })
+    .filter(dirent => dirent.isFile() && dirent.name.endsWith('.test.ts'))
+    .map(dirent => path.join(UNIT_TEST_DIR, dirent.name));
+  testFiles.push(...unitFiles);
+
+  // Get files from integration tests directory
+  const integrationFiles = fs.readdirSync(INTEGRATION_TEST_DIR, { withFileTypes: true })
+    .filter(dirent => dirent.isFile() && dirent.name.endsWith('.test.ts'))
+    .map(dirent => path.join(INTEGRATION_TEST_DIR, dirent.name));
+  testFiles.push(...integrationFiles);
+
+  // Get files from e2e tests directory
+  const e2eFiles = fs.readdirSync(E2E_TEST_DIR, { withFileTypes: true })
+    .filter(dirent => dirent.isFile() && dirent.name.endsWith('.test.ts'))
+    .map(dirent => path.join(E2E_TEST_DIR, dirent.name));
+  testFiles.push(...e2eFiles);
+
+  // Get files from other test directories (excluding unit, integration, e2e and utils)
+  const dirs = fs.readdirSync(TEST_DIR, { withFileTypes: true });
+  for (const dirent of dirs) {
+    if (dirent.isDirectory() && !['unit', 'integration', 'e2e', 'utils', 'fixtures', 'templates'].includes(dirent.name)) {
+      const dirPath = path.join(TEST_DIR, dirent.name);
+      const walkDir = (dir) => {
+        fs.readdirSync(dir, { withFileTypes: true }).forEach(subDirent => {
+          const res = path.join(dir, subDirent.name);
+          if (subDirent.isDirectory()) {
+            walkDir(res);
+          } else if (subDirent.isFile() && subDirent.name.endsWith('.test.ts')) {
+            testFiles.push(res);
+          }
+        });
+      };
+      walkDir(dirPath);
     }
-    
-    // Get any other test files from subdirectories
-    const walkDir = (dir) => {
-      if (!fs.existsSync(dir)) return;
-      
-      fs.readdirSync(dir, { withFileTypes: true }).forEach(dirent => {
-        const res = path.join(dir, dirent.name);
-        if (dirent.isDirectory() && dirent.name !== 'new-approach') {
-          walkDir(res);
-        } else if (dirent.isFile() && TS_TEST_PATTERN.test(dirent.name)) {
-          allFiles.push(res);
-        }
-      });
-    };
-    
-    walkDir(TEST_DIR);
-    return allFiles;
-  } catch (error) {
-    log(`Error reading test files: ${error.message}`, COLOR.red);
-    return [];
   }
+
+  return testFiles;
 }
 
 // Validate test file
