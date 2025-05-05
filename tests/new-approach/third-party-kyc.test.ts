@@ -8,7 +8,8 @@
 import { assert } from "chai";
 import { PublicKey, Keypair } from "@solana/web3.js";
 import { setupTestContext } from "../framework/setup";
-// We'll use a more generic type to avoid type mismatches between setup and types
+// Using a more generic type to avoid type mismatches between framework versions
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TestContext = any;
 import {
   registerKycProvider,

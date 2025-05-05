@@ -21,6 +21,7 @@ import {
 } from "../framework/blacklist-helpers";
 import { BlacklistReason, BlacklistActionType } from "../framework/types";
 import { assert } from "chai";
+import { setupTestContext } from '../framework/setup';
 
 describe("Blacklist Functionality Tests", () => {
   // Test context setup
@@ -35,14 +36,30 @@ describe("Blacklist Functionality Tests", () => {
     // Set up test context, create keypairs, token mint, and token accounts
 
     // Normally we would initialize a proper test context
-    context = {
-      /* will be initialized in actual tests */
-    };
+    context = await setupTestContext();
 
     // Create keypairs for our users
     normalUser = Keypair.generate();
     blacklistedUser = Keypair.generate();
     temporarilyBlacklistedUser = Keypair.generate();
+
+    // Add permanent blacklist entry
+    await addToBlacklist(context, {
+      userPublicKey: blacklistedUser.publicKey,
+      reason: BlacklistReason.SuspiciousActivity,
+      evidence: "Suspicious transaction pattern detected",
+      actionType: BlacklistActionType.BlockTransfers,
+    });
+
+    // Add temporary blacklist entry (expires in 7 days)
+    const expiryDate = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60);
+    await addToBlacklist(context, {
+      userPublicKey: temporarilyBlacklistedUser.publicKey,
+      reason: BlacklistReason.TemporaryRestriction,
+      evidence: "Temporary restriction for compliance review",
+      expiryDate,
+      actionType: BlacklistActionType.Restrict,
+    });
   });
 
   describe("Blacklist Management", () => {

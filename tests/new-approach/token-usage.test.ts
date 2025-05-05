@@ -21,7 +21,9 @@ import {
 import { assert } from "chai";
 
 describe("Token Usage Based on KYC Rules", () => {
-  // Test context - using any to avoid type conflicts
+  // Using type TestContextMock for simplicity in these tests since we're not
+  // using the full context capabilities and to avoid type conflicts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let context: any;
 
   // Key participants

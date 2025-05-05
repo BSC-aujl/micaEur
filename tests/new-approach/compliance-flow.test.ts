@@ -40,7 +40,9 @@ import {
 } from "../framework/token-mint-helpers";
 
 describe("Complete KYC/AML Compliance Flow", () => {
-  let context: any; // Using any to handle type conflicts
+  // Using any for the context due to type compatibility issues between framework modules
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let context: any;
 
   // Key participants
   let userKeypair: Keypair;

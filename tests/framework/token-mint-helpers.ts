@@ -131,17 +131,13 @@ export async function createTokenMint(
   decimals = 6,
   freezeAuthority: PublicKey | null = authority
 ): Promise<PublicKey> {
-  const mintKeypair = Keypair.generate();
-  
-  const mint = await createMint(
+  return await createMint(
     context.connection,
     context.payer,
     authority,
     freezeAuthority,
     decimals
   );
-
-  return mint;
 }
 
 /**
@@ -158,8 +154,6 @@ export async function createMicaEurMint(
   }
 ): Promise<PublicKey> {
   // Create the basic token mint
-  const mintKeypair = Keypair.generate();
-  
   const mint = await createMint(
     context.connection,
     context.payer,

@@ -383,4 +383,80 @@ export async function getKycStats(
     level1Users: users.filter(u => 'verified' in u.status && u.verificationLevel === 1).length,
     level2Users: users.filter(u => 'verified' in u.status && u.verificationLevel === 2).length,
   };
+}
+
+/**
+ * Signs verification data using a provider's keypair
+ */
+export function signVerificationData(
+  providerKeypair: Keypair, 
+  verificationData: string | object
+): Uint8Array {
+  // Convert object to string if needed
+  const dataString = typeof verificationData === 'object' 
+    ? JSON.stringify(verificationData) 
+    : verificationData;
+    
+  // Create buffer from the data - we don't use this directly but useful for real implementation
+  // No need to store in a variable if unused
+  Buffer.from(dataString);
+  
+  // Sign the data
+  return providerKeypair.secretKey.slice(0, 64);  // This is a stub - in a real implementation, this would sign the data
+}
+
+/**
+ * Processes a third-party verification
+ */
+export async function processThirdPartyVerification(
+  context: TestContext,
+  params: {
+    userKeypair: Keypair;
+    providerId: string;  // This would be a PublicKey in real implementation
+    verificationId: string;
+    verificationData: string;
+    verificationLevel: number;
+    expiryDays: number;
+    signature: Uint8Array;
+  }
+): Promise<PublicKey> {
+  // This is a simplified implementation for testing
+  
+  // 1. Find the provider by id (in real implementation, you'd look up by public key)
+  const providers = await listKycProviders(context);
+  const provider = providers.find(p => p.id === params.providerId);
+  
+  if (!provider) {
+    throw new Error(`Provider ${params.providerId} not found`);
+  }
+  
+  if (!provider.isActive) {
+    throw new Error(`Provider ${params.providerId} is not active`);
+  }
+  
+  // 2. Generate the user KYC PDA
+  const userPDA = await findKycUserPDA(
+    context.program.programId,
+    params.userKeypair.publicKey
+  );
+  
+  // 3. Register the user with the verification level
+  await registerKycUser(context, {
+    userKeypair: params.userKeypair,
+    blz: "verifiedByThirdParty",
+    ibanHash: `verified-${params.verificationId}`,
+    verificationLevel: params.verificationLevel,
+    countryCode: 0, // This would be parsed from the verification data in a real implementation
+    verificationProvider: params.providerId
+  });
+  
+  // 4. Update the user's status to verified
+  await updateKycStatus(context, {
+    userPublicKey: params.userKeypair.publicKey,
+    status: 'verified',
+    verificationLevel: params.verificationLevel,
+    expiryDate: Math.floor(Date.now() / 1000) + (params.expiryDays * 24 * 60 * 60)
+  });
+  
+  return userPDA;
 } 
