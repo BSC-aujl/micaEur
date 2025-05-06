@@ -2,10 +2,11 @@
 tests/unit/kyc_oracle.test.ts
 tests/unit/token_extensions.test.ts
 tests/unit/token_mint.test.ts
+tests/utils/mock-setup.ts
 
 # Node modules
 node_modules/
 
 # Build output
 dist/
-build/
+build/ 

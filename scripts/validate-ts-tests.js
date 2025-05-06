@@ -46,6 +46,7 @@ const IMPORT_CHECK_ALLOWLIST = [
   "tests/unit/",
   "tests/integration/",
   "tests/functional/",
+  "tests/unit/smoke.test.ts",
 ];
 
 // Files allowed to skip describe/it structure
@@ -55,6 +56,7 @@ const STRUCTURE_CHECK_ALLOWLIST = [
   "tests/unit/",
   "tests/integration/",
   "tests/functional/",
+  "tests/unit/smoke.test.ts",
 ];
 
 // Color codes for console output

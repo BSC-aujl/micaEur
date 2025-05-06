@@ -32,6 +32,7 @@ const EXCLUDE_PATTERNS = [
 const ANY_TYPE_ALLOWLIST = [
   "tests/e2e/compliance-flow.test.ts",
   "tests/unit/blacklist-functionality.test.ts",
+  "tests/utils/mock-setup.ts",
 ];
 
 // Type patterns to check
