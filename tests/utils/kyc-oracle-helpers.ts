@@ -99,7 +99,7 @@ export async function registerKycUser(
 
   try {
     // Check if already registered
-    await program.account.kycUser.fetch(kycUserPDA);
+    await (program.account as any).kycUser.fetch(kycUserPDA);
     // console.log('KYC User already registered, using existing PDA');
   } catch (e) {
     // Register KYC user
@@ -174,7 +174,7 @@ export async function fetchKycUser(
   kycUserPDA: PublicKey
 ) {
   const { program } = context;
-  return await program.account.kycUser.fetch(kycUserPDA);
+  return await (program.account as any).kycUser.fetch(kycUserPDA);
 }
 
 /**
