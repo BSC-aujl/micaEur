@@ -42,6 +42,7 @@ build
 # Test artifacts
 test-results
 coverage
+tests/experimental/
 
 # Security and key materials
 keys/
