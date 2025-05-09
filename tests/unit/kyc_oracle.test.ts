@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
-import { MicaEur } from '../target/types/mica_eur';
+import { MicaEur } from '../../target/types/mica_eur';
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { assert } from 'chai';
 import { findProgramAddresses, fundAccounts } from './setup';
 import BN from 'bn.js';
+import { findPreimageAddresses } from '@coral-xyz/anchor/dist/cjs/utils/pubkey';
+import { setupProgram } from '../utils/setup';
 
 describe('KYC Oracle Tests', () => {
   // Configure the client to use the local cluster

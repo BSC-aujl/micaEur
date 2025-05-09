@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_lang::system_program;
 use anchor_spl::{
     token_2022::{self, spl_token_2022::{
         extension::{
@@ -9,8 +8,7 @@ use anchor_spl::{
             permanent_delegate::PermanentDelegate,
             StateWithExtensions,
         },
-        state::{Account, AccountState, Mint},
-        instruction::{initialize_permanent_delegate, initialize_default_account_state, initialize_metadata_pointer},
+        state::{AccountState, Mint},
         ID as TOKEN_2022_ID,
     }},
 };
@@ -82,12 +80,17 @@ pub mod mica_eur {
             // We allow it to continue but log a warning
         }
     
+        let mint_key = ctx.accounts.mint.key();
+        let mint_key_ref = mint_key.as_ref();
+        let bump = ctx.bumps.mint_info;
+        let bump_ref = &[bump];
+        
         let seeds = &[
             MINT_INFO_SEED,
-            ctx.accounts.mint.key().as_ref(),
-            &[ctx.bumps.mint_info],
+            mint_key_ref,
+            bump_ref,
         ];
-        let signer = &[&seeds[..]];
+        let _signer = &[&seeds[..]];
 
         // Store mint info
         let mint_info = &mut ctx.accounts.mint_info;
@@ -258,12 +261,15 @@ pub mod mica_eur {
         ipfs_cid: String,
     ) -> Result<()> {
         let mint_info = &mut ctx.accounts.mint_info;
+        let ipfs_cid_clone = ipfs_cid.clone(); // Clone before using
+        
         mint_info.reserve_merkle_root = merkle_root;
-        mint_info.reserve_ipfs_cid = ipfs_cid;
+        mint_info.reserve_ipfs_cid = ipfs_cid; // Original can be moved here
         mint_info.last_reserve_update = Clock::get()?.unix_timestamp;
         
-        msg!("Updated reserve proof with merkle root: {:?}", merkle_root);
-        msg!("IPFS CID: {}", ipfs_cid);
+        msg!("Reserve proof updated");
+        msg!("Merkle root: {:?}", merkle_root);
+        msg!("IPFS CID: {}", ipfs_cid_clone); // Use the clone
         
         Ok(())
     }

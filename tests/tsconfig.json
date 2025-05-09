@@ -7,7 +7,10 @@
     "checkJs": false,
     "noEmit": true,
     "strict": false,
-    "ignoreDeprecations": "5.0"
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "ignoreDeprecations": "5.0",
+    "types": ["jest"]
   },
   "include": [
     "**/*.ts"

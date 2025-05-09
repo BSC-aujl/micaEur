@@ -9,19 +9,6 @@ import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Keypair, SystemProgram } from "@solana/web3.js";
 import { TestContext, KycStatus } from "./types";
 
-// Define ProgramAccount interface
-interface ProgramAccountMethods {
-  kycUser: {
-    fetch: (address: PublicKey) => Promise<KycUserAccount>;
-  };
-}
-
-// Define KycUserAccount interface
-interface KycUserAccount {
-  status: KycStatus;
-  expiryDate: number | anchor.BN;
-}
-
 /**
  * Find the KYC Oracle PDA
  */
@@ -112,7 +99,7 @@ export async function registerKycUser(
 
   try {
     // Check if already registered
-    await (program.account as ProgramAccountMethods).kycUser.fetch(kycUserPDA);
+    await program.account.kycUser.fetch(kycUserPDA);
     // console.log('KYC User already registered, using existing PDA');
   } catch (e) {
     // Register KYC user
@@ -185,9 +172,9 @@ export async function updateKycStatus(
 export async function fetchKycUser(
   context: TestContext,
   kycUserPDA: PublicKey
-): Promise<KycUserAccount> {
+) {
   const { program } = context;
-  return await (program.account as ProgramAccountMethods).kycUser.fetch(kycUserPDA);
+  return await program.account.kycUser.fetch(kycUserPDA);
 }
 
 /**

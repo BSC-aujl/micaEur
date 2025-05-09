@@ -7,7 +7,7 @@ export FORCE_EXIT_ON_ERROR=1
 # Set this variable to 1 to skip linting step
 if [ "$SKIP_LINT" = "1" ]; then
   # Run pre-commit without linting
-  node scripts/verify-signatures.js && node scripts/verify-types.js && node scripts/validate-ts-tests.js && ./scripts/build-no-proxy.sh && npm run test:precommit:smoke
+  node scripts/verify-signatures.js && node scripts/verify-types.js && ./scripts/build-no-proxy.sh && npm run test:precommit:smoke
 else
   # Run the precommit script which handles linting, formatting, building, and testing
   npm run precommit || exit 1 

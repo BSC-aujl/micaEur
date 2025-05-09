@@ -1,3 +1,6 @@
+use anchor_lang::prelude::*;
+use anchor_spl::token_2022::ID as TOKEN_2022_PROGRAM_ID;
+
 /// PDA seed for mint info account
 pub const MINT_INFO_SEED: &[u8] = b"mint_info";
 
@@ -25,4 +28,7 @@ pub const SUPPORTED_COUNTRIES: [&str; 27] = [
 pub const MAX_TRANSACTION_AMOUNT: u64 = 100_000_000_000_000;
 
 /// Decimals for the EUR token
-pub const EUR_DECIMALS: u8 = 9; 
+pub const EUR_DECIMALS: u8 = 9;
+
+/// Token 2022 Program ID
+pub const TOKEN_2022_ID: Pubkey = TOKEN_2022_PROGRAM_ID; 

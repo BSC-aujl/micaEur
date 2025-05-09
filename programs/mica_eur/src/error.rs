@@ -40,4 +40,7 @@ pub enum MicaEurError {
 
     #[msg("Invalid reserve proof")]
     InvalidReserveProof,
+    
+    #[msg("Invalid extension")]
+    InvalidExtension,
 } 

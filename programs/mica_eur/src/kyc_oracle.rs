@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use crate::constants::KYC_ORACLE_SEED;
 
 // KYC status enum
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, Debug)]

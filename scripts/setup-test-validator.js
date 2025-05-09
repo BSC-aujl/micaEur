@@ -45,7 +45,6 @@ async function startValidator() {
   
   const resetFlag = noReset ? [] : ['--reset'];
   const args = [
-    '--no-bpf-jit',
     ...resetFlag,
     '--quiet'
   ];
@@ -92,6 +91,22 @@ async function startValidator() {
  * Build and deploy the program
  */
 async function buildAndDeploy() {
+  console.log('🔨 Normalizing Cargo.lock version to 3...');
+  try {
+    const cargoLockPath = path.join(projectRoot, 'Cargo.lock');
+    const lockContent = fs.readFileSync(cargoLockPath, 'utf8');
+    const lines = lockContent.split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      if (/^version = \d+$/.test(lines[i])) {
+        lines[i] = 'version = 3';
+        break;
+      }
+    }
+    fs.writeFileSync(cargoLockPath, lines.join("\n"));
+    console.log('✅ Cargo.lock version normalized');
+  } catch (err) {
+    console.warn('⚠️ Could not normalize Cargo.lock version:', err.message);
+  }
   console.log('🔨 Building the program...');
   
   try {

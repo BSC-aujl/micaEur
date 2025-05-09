@@ -15,7 +15,6 @@
 
 /* eslint-disable @typescript-eslint/no-var-requires, no-console */
 const { execSync, spawn } = require('child_process');
-const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
@@ -103,18 +102,16 @@ function log(message, color = '') {
 // Run a single test file
 function runTestFile(filePath, timeout) {
   return new Promise((resolve) => {
-    const command = `npx ts-mocha -p ${TEST_CONFIG.tsConfig} ${filePath} --timeout ${timeout}`;
+    const command = `npx ts-mocha -r tests/utils/env-setup.ts -p ${TEST_CONFIG.tsConfig} ${filePath} --timeout ${timeout}`;
     const testName = path.basename(filePath);
     
     log(`▶️ Running: ${testName}`, COLOR.cyan);
     const startTime = Date.now();
     
     const child = spawn(command, { shell: true });
-    let stdout = '';
     let stderr = '';
     
     child.stdout.on('data', (data) => {
-      stdout += data.toString();
       process.stdout.write(data);
     });
     
@@ -275,4 +272,8 @@ main().catch(error => {
     log(error.stack, COLOR.red);
   }
   process.exit(1);
-}); 
+});
+
+// ensure AnchorProvider.env() works when no env vars are set
+process.env.ANCHOR_PROVIDER_URL = process.env.ANCHOR_PROVIDER_URL || 'http://localhost:8899';
+process.env.ANCHOR_WALLET = process.env.ANCHOR_WALLET || path.join(os.homedir(), '.config', 'solana', 'id.json'); 

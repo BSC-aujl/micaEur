@@ -1,6 +1,121 @@
-# MiCA EUR - Solana-native Euro Stablecoin
+# MiCA EUR Stablecoin
 
-A MiCA-compliant euro stablecoin built on Solana using SPL Token-2022 extensions. This project demonstrates how to create a regulatory-compliant stablecoin that embeds MiCA safety rails, provides proof-of-reserves, and connects to German banking rails via PSD2 APIs.
+A MiCA-compliant Euro stablecoin implementation on Solana, designed to meet regulatory requirements while enabling efficient digital transactions.
+
+## Features
+
+- **Euro-backed**: 1:1 backing with the Euro maintained in regulated financial institutions
+- **MiCA Compliant**: Adheres to Markets in Crypto-Assets regulation requirements
+- **Tiered KYC**: Supports different verification levels for various use cases
+- **AML Controls**: Comprehensive anti-money laundering mechanisms
+- **Blacklisting**: Ability to restrict addresses that violate terms or regulations
+- **Transaction Monitoring**: Integrated system for tracking suspicious activities
+- **Third-Party KYC Integration**: Support for external KYC provider verification
+- **Flexible Redemption**: Easy conversion back to fiat currency for verified users
+
+## KYC Levels
+
+The stablecoin implements three KYC verification levels:
+
+| Level | Name | Purpose |
+|-------|------|---------|
+| 0 | None | Basic token ownership and transfers |
+| 1 | User | Individual KYC for redemption and most services |
+| 2 | Business | Company verification for institutional use cases |
+
+## Token Usage Rules
+
+- **Basic Ownership**: Any non-blacklisted address can own and transfer tokens
+- **Redemption**: Requires "User" KYC for individuals or "Business" KYC for companies
+- **DeFi Services**: Liquidity pools and lending services may require KYC depending on the provider and user
+
+## Architecture
+
+The project consists of multiple components:
+
+1. **Token Contract**: Core token functionality with MiCA compliance features
+2. **KYC Oracle**: Verifies and stores user identity information
+3. **AML System**: Monitors transactions and manages alerts
+4. **Blacklist Registry**: Maintains a list of restricted addresses
+5. **Admin Interface**: Tools for token issuer to manage compliance
+6. **User Interface**: Web app for token holders to manage their tokens
+
+## Getting Started
+
+### Prerequisites
+
+- Solana CLI tools
+- Anchor framework
+- Node.js and npm
+- Typescript
+
+### Installation
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/yourusername/mica-eur.git
+   cd mica-eur
+   ```
+
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+
+3. Build the program
+   ```bash
+   npm run build
+   ```
+
+4. Run tests
+   ```bash
+   npm test
+   ```
+
+## Development
+
+### Directory Structure
+
+- `/programs`: Solana program source code
+- `/app`: Frontend application
+- `/tests`: Test files
+- `/docs`: Documentation
+
+### Testing
+
+Run all tests:
+```bash
+npm test
+```
+
+Run specific test categories:
+```bash
+npm run test:kyc     # KYC functionality tests
+npm run test:token   # Token operations tests
+npm run test:aml     # AML system tests
+```
+
+## Documentation
+
+- [KYC and AML System](docs/kyc-aml-system.md)
+- [Token Specification](docs/token-specification.md)
+- [API Documentation](docs/api-docs.md)
+
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## Disclaimer
+
+This implementation is intended for demonstration purposes only and should be thoroughly audited before use in a production environment. The developers are not responsible for any losses incurred through the use of this software.
+
+## Contact
+
+For inquiries, please contact [your-email@example.com](mailto:your-email@example.com)
 
 ## 🏆 Hackathon Project
 
@@ -12,7 +127,7 @@ This project uses the following versions:
 
 | Component                    | Version |
 | ---------------------------- | ------- |
-| Anchor                       | 0.31.1  |
+| Anchor                       | 0.30.1  |
 | Solana                       | 1.18.17 |
 | SPL Token-2022               | 2.0.6   |
 | SPL Token                    | 4.0.0   |
