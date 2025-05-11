@@ -24,26 +24,11 @@ cat > target/idl/mica_eur.json << EOF
   "accounts": [],
   "types": [],
   "metadata": {
-    "address": "miCAkL5vq1JXvQbmbWR1L16RgH8Szzx9XPHeCqGkWCL"
-  }
-}
-EOF
-
-# Generate a minimal IDL file for mica_eur_new
-echo "Generating minimal IDL file for mica_eur_new..."
-cat > target/idl/mica_eur_new.json << EOF
-{
-  "version": "0.1.0",
-  "name": "mica_eur_new",
-  "instructions": [],
-  "accounts": [],
-  "types": [],
-  "metadata": {
     "address": "9x3tkUkajECAgPvS59YTAdD7VZRMRckrPxFC4MZspup5"
   }
 }
 EOF
 
-echo "✅ Successfully generated minimal IDL files for development"
+echo "✅ Successfully generated minimal IDL file for development"
 echo "Run your tests with ./scripts/run-functional-tests.sh to use LiteSVM emulation"
 echo "Note: Full BPF compilation is skipped due to missing target support" 

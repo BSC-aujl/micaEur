@@ -7,8 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-mica_eur = "miCAkL5vq1JXvQbmbWR1L16RgH8Szzx9XPHeCqGkWCL"
-mica_eur_new = "9x3tkUkajECAgPvS59YTAdD7VZRMRckrPxFC4MZspup5"
+mica_eur = "9x3tkUkajECAgPvS59YTAdD7VZRMRckrPxFC4MZspup5"
 
 [registry]
 url = "https://api.apr.dev"
