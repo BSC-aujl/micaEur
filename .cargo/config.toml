@@ -1,0 +1,5 @@
+[build]
+target = "bpfel-unknown-unknown"
+
+[env]
+RUSTFLAGS = "-C link-arg=-z -C link-arg=notext -C link-arg=-z -C link-arg=nocopyreloc"

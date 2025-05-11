@@ -408,10 +408,24 @@ This project uses Husky and lint-staged for pre-commit hooks to ensure code qual
 The pre-commit hook runs:
 
 1. Lint staged files
-2. Verify signatures in critical files (Rust program, scripts)
-3. Verify type signatures in functions and programs
-4. Build the Anchor program
-5. Run smoke tests
+2. Verify KYC verification levels across the codebase
+3. Verify signatures in critical files (Rust program, scripts)
+4. Verify type signatures in functions and programs
+5. Build the Anchor program
+6. Run fast tests including KYC end-to-end flow
+
+These hooks ensure that any changes to the KYC verification levels are consistently applied across the codebase, including code, tests, and documentation. The KYC verification checks specifically validate:
+
+- Consistency of verification level definitions
+- Proper permissions for each verification level
+- Documentation accuracy in the KYC flow guide
+- Test coverage for all verification levels
+
+You can test the pre-commit hooks without committing by running:
+
+```bash
+./scripts/test-precommit.sh
+```
 
 If any of these steps fail, the commit will be aborted.
 

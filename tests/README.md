@@ -1,122 +1,61 @@
-# MiCA EUR Test Suite
+# MiCA EUR Tests
 
-This directory contains the tests for the MiCA EUR stablecoin project.
+This directory contains the LiteSVM tests for the MiCA EUR program. We use LiteSVM, a lightweight simulator for Solana programs that allows testing without requiring a validator or BPF build.
 
-## Test Directory Structure
+## Test Files
 
-```
-tests/
-├── e2e/             # End-to-end tests that verify full system functionality
-├── integration/     # Integration tests that verify interaction between components
-├── unit/            # Unit tests that verify individual components
-├── functional/      # Functional/flow tests for specific use cases
-├── utils/           # Shared utilities and helper functions
-├── templates/       # Templates for creating new tests
-└── fixtures/        # Test fixtures and mock data
-```
-
-## Test Types
-
-### Unit Tests
-
-Unit tests are focused on testing individual components in isolation. They're typically smaller, faster, and more focused.
-
-Example: Testing token mint functions, KYC verification, or individual account structures.
-
-### Integration Tests
-
-Integration tests verify that multiple components work together correctly. They test the interaction between different parts of the system.
-
-Example: Testing the blacklisting system together with token transfers, or testing AML authorities with the KYC system.
-
-### End-to-End Tests
-
-End-to-end tests verify complete workflows and user journeys. They test the entire system working together.
-
-Example: The comprehensive test verifies the full system flow from KYC verification to minting, transfers, freezing, and redemption.
-
-### Functional Tests
-
-Functional tests verify specific business flows or use cases. They focus on testing a particular functionality from a user's perspective.
-
-Example: Redemption flow, regulatory compliance, reserve backing.
+- `mica-eur-functional-tests.ts`: Comprehensive functional tests for all MiCA EUR components:
+  - KYC Oracle functionality
+  - Token operations
+  - AML Authority
+  - Freeze/Seize functionality
 
 ## Running Tests
 
-To run tests, use the following npm scripts:
+We provide multiple scripts to run different test components:
 
 ```bash
-# Run all tests
-npm run test
+# Run all functional tests
+npm run test:functional
 
-# Run specific test types
-npm run test:unit
-npm run test:integration
-npm run test:e2e
-
-# Run specific test groups
-npm run test:kyc        # Run KYC Oracle tests
-npm run test:mint       # Run token mint tests
-npm run test:freeze     # Run freeze/seize tests
-npm run test:extensions # Run token extensions tests
-npm run test:comprehensive  # Run complete end-to-end tests
+# Run specific test suites
+npm run test:kyc             # KYC Oracle tests
+npm run test:token           # Token functionality tests
+npm run test:aml             # AML Authority tests
+npm run test:freeze-seize    # Freeze/Seize functionality tests
 ```
 
-## Test Utilities
+## Test Structure
 
-Common helper functions are available in the `utils/` directory:
+The main functional test file (`mica-eur-functional-tests.ts`) is organized into test suites:
 
-- `setup.ts` - Common test setup utilities
-- `types.ts` - TypeScript types and interfaces
-- `token-utils.ts` - Token-related utility functions
-- `kyc-oracle-helpers.ts` - KYC verification helpers
-- `kyc-provider-helpers.ts` - KYC provider management helpers
-- `token-mint-helpers.ts` - Token minting helpers
-- `blacklist-helpers.ts` - Blacklist management helpers
-- `aml-authority-helpers.ts` - AML authority and alert helpers
-- `freeze-seize-helpers.ts` - Account freeze and token seizure helpers
+1. **KYC Oracle Tests** - Tests for KYC Oracle initialization, user registration, and status updates.
+2. **Token Functionality Tests** - Tests for token account creation, minting, and transfers.
+3. **AML Authority Tests** - Tests for AML authority registration and blacklist creation.
+4. **Freeze/Seize Functionality Tests** - Tests for freezing accounts and seizing tokens.
 
-## Creating New Tests
+## Benefits of LiteSVM Tests
 
-Use the test creator script to create new tests:
+- **Faster Execution**: Tests run quickly without requiring a full Solana validator
+- **No BPF Compilation**: No need to build BPF code, making tests more accessible
+- **Simplified Testing**: Direct control over account state and simulated transactions
+- **Reproducible Results**: Tests are deterministic and easy to debug
+
+## Adding New Tests
+
+When adding new tests:
+
+1. Follow the existing patterns in the test file
+2. Group related tests into appropriate describe blocks
+3. Use descriptive test names that clearly explain what functionality is being tested
+4. Make sure to test both happy path and error conditions
+
+## Debugging Tests
+
+To debug tests, you can add the `--inspect-brk` flag to the Node.js command:
 
 ```bash
-node scripts/create-test.js
+node --inspect-brk --experimental-vm-modules node_modules/mocha/bin/mocha.js -p ./tsconfig.json -t 1000000 tests/mica-eur-functional-tests.ts
 ```
 
-This interactive script will:
-1. Ask for a test name
-2. Ask which type of test you want to create (unit, integration, or e2e)
-3. Create a new test file from a template in the appropriate directory
-
-## Test Naming Conventions
-
-All test files follow these naming conventions:
-
-- Unit tests: `feature-name.test.ts`
-- Integration tests: `feature-interaction.test.ts`
-- E2E tests: `workflow-name.test.ts`
-- Functional tests: `use-case-name.test.ts`
-
-## Continuous Integration
-
-Tests are run automatically as part of the CI/CD pipeline and via pre-commit hooks to ensure code quality.
-
-## Testing TypeScript Standards
-
-The test suite applies strong TypeScript standards:
-
-- Proper type definitions for test data
-- Avoidance of 'any' type where possible
-- Consistent error handling patterns
-- Clear test assertions and descriptions
-
-## Recent Test Migration
-
-The test suite was recently migrated to a more organized structure:
-- Consolidated all helper functions in `utils/` 
-- Organized tests by type (unit, integration, e2e, functional)
-- Updated import paths and dependencies
-- Removed duplicate test files
-
-Legacy test files from the previous structure were moved to the appropriate directories, with stub files left in their original locations pointing to the new locations to avoid breaking existing references.
+Then connect using Chrome DevTools or VS Code debugger.

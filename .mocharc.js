@@ -1,5 +1,5 @@
 /* eslint-disable */
-module.exports = {
+export default {
   // Load environment setup before tests (sets Anchor env vars)
   require: ["tests/utils/env-setup.ts"],
   // Handle TypeScript files

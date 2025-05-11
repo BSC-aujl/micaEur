@@ -4,43 +4,43 @@ use anchor_lang::prelude::*;
 pub enum MicaEurError {
     #[msg("User is not KYC verified")]
     UserNotVerified,
-
-    #[msg("User KYC verification has expired")]
-    KycExpired,
-
-    #[msg("User verification level is insufficient")]
-    InsufficientVerificationLevel,
-
-    #[msg("Country is not supported")]
-    CountryNotSupported,
-
-    #[msg("Mint is inactive")]
-    MintInactive,
-
-    #[msg("Invalid amount")]
-    InvalidAmount,
-
-    #[msg("Account is frozen")]
-    AccountFrozen,
-
-    #[msg("Only issuer can mint tokens")]
-    NotIssuer,
-
-    #[msg("Only freeze authority can freeze/thaw accounts")]
-    NotFreezeAuthority,
-
-    #[msg("Only permanent delegate can seize tokens")]
-    NotPermanentDelegate,
-
-    #[msg("Invalid transfer hook program")]
-    InvalidTransferHookProgram,
-
-    #[msg("Invalid metadata pointer URI")]
-    InvalidMetadataURI,
-
-    #[msg("Invalid reserve proof")]
-    InvalidReserveProof,
     
-    #[msg("Invalid extension")]
-    InvalidExtension,
+    #[msg("User KYC verification has expired")]
+    UserVerificationExpired,
+    
+    #[msg("User's KYC verification level is insufficient for this operation")]
+    InsufficientVerificationLevel,
+    
+    #[msg("Transaction amount exceeds maximum allowed")]
+    TransactionAmountExceedsMaximum,
+    
+    #[msg("Country not supported under MiCA regulation")]
+    UnsupportedCountry,
+    
+    #[msg("Account is already frozen")]
+    AccountAlreadyFrozen,
+    
+    #[msg("Account is not frozen")]
+    AccountNotFrozen,
+    
+    #[msg("Caller is not the mint authority")]
+    NotMintAuthority,
+    
+    #[msg("Invalid KYC status")]
+    InvalidKycStatus,
+    
+    #[msg("Invalid verification level")]
+    InvalidVerificationLevel,
+    
+    #[msg("Invalid expiry date")]
+    InvalidExpiryDate,
+    
+    #[msg("User already registered for KYC")]
+    UserAlreadyRegistered,
+    
+    #[msg("Invalid country code format")]
+    InvalidCountryCode,
+    
+    #[msg("Token account does not belong to the KYC verified user")]
+    TokenAccountOwnerMismatch,
 } 

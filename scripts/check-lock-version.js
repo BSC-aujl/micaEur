@@ -8,10 +8,13 @@
  */
 
 /* eslint-disable @typescript-eslint/no-var-requires, no-console */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Get project root directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const cargoLockPath = path.join(projectRoot, 'Cargo.lock');
 
