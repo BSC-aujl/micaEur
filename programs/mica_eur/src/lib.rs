@@ -19,14 +19,16 @@ mod constants;
 mod error;
 mod mint_utils;
 mod versions;
+mod merkle_info;
 
 pub use kyc_oracle::*;
 pub use constants::*;
 pub use error::*;
 pub use mint_utils::*;
 pub use versions::*;
+pub use merkle_info::*;
 
-declare_id!("miCAkL5vq1JXvQbmbWR1L16RgH8Szzx9XPHeCqGkWCL");
+declare_id!("9x3tkUkajECAgPvS59YTAdD7VZRMRckrPxFC4MZspup5");
 
 #[program]
 pub mod mica_eur {
@@ -537,4 +539,4 @@ pub struct UpdateReserveProof<'info> {
         constraint = mint_info.is_active,
     )]
     pub mint_info: Account<'info, MintInfo>,
-}
+} 
