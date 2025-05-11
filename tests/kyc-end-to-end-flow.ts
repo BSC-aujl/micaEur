@@ -54,10 +54,10 @@ const KYC_STATUS = {
 };
 
 const VERIFICATION_LEVELS = {
-  NONE: 0,
-  BASIC: 1,        // For basic transfers
-  STANDARD: 2,      // For minting/redeeming
-  ADVANCED: 3       // For higher limits
+  UNVERIFIED: 0,    // Can transfer tokens, but not mint or redeem
+  BASIC: 1,         // Individual users with bank accounts, can mint and redeem
+  STANDARD: 2,      // Business users with additional compliance checks
+  ADVANCED: 3       // Institutional users, highest limits
 };
 
 // Seeds for PDA derivation
@@ -76,21 +76,23 @@ describe("MiCA EUR KYC End-to-End Flow", () => {
   const permanentDelegate = Keypair.generate();
   
   // User keypairs
-  const user1 = Keypair.generate();
-  const user2 = Keypair.generate();
+  const unverifiedUser = Keypair.generate();
+  const individualUser = Keypair.generate();
+  const businessUser = Keypair.generate();
   
   // Token keypairs
   const mintKeypair = Keypair.generate();
   
   // PDAs
   let kycOracleStatePda: PublicKey;
-  let user1KycPda: PublicKey;
-  let user2KycPda: PublicKey;
+  let individualUserKycPda: PublicKey;
+  let businessUserKycPda: PublicKey;
   let mintInfoPda: PublicKey;
   
   // Token accounts
-  let user1TokenAccount: PublicKey;
-  let user2TokenAccount: PublicKey;
+  let unverifiedUserTokenAccount: PublicKey;
+  let individualUserTokenAccount: PublicKey;
+  let businessUserTokenAccount: PublicKey;
   
   // Test data
   const germanCountryCode = "DE";
@@ -113,13 +115,13 @@ describe("MiCA EUR KYC End-to-End Flow", () => {
       PROGRAM_ID
     );
     
-    [user1KycPda] = PublicKey.findProgramAddressSync(
-      [KYC_USER_SEED, user1.publicKey.toBuffer()],
+    [individualUserKycPda] = PublicKey.findProgramAddressSync(
+      [KYC_USER_SEED, individualUser.publicKey.toBuffer()],
       PROGRAM_ID
     );
     
-    [user2KycPda] = PublicKey.findProgramAddressSync(
-      [KYC_USER_SEED, user2.publicKey.toBuffer()],
+    [businessUserKycPda] = PublicKey.findProgramAddressSync(
+      [KYC_USER_SEED, businessUser.publicKey.toBuffer()],
       PROGRAM_ID
     );
     
@@ -129,26 +131,33 @@ describe("MiCA EUR KYC End-to-End Flow", () => {
     );
     
     // Get token accounts
-    user1TokenAccount = getAssociatedTokenAddressSync(
+    unverifiedUserTokenAccount = getAssociatedTokenAddressSync(
       mintKeypair.publicKey,
-      user1.publicKey,
+      unverifiedUser.publicKey,
       false
     );
     
-    user2TokenAccount = getAssociatedTokenAddressSync(
+    individualUserTokenAccount = getAssociatedTokenAddressSync(
       mintKeypair.publicKey,
-      user2.publicKey,
+      individualUser.publicKey,
+      false
+    );
+    
+    businessUserTokenAccount = getAssociatedTokenAddressSync(
+      mintKeypair.publicKey,
+      businessUser.publicKey,
       false
     );
     
     // Fund the accounts
     svm.airdrop(kycAuthority.publicKey, 10_000_000_000n);
     svm.airdrop(issuer.publicKey, 10_000_000_000n);
-    svm.airdrop(user1.publicKey, 10_000_000_000n);
-    svm.airdrop(user2.publicKey, 10_000_000_000n);
+    svm.airdrop(unverifiedUser.publicKey, 10_000_000_000n);
+    svm.airdrop(individualUser.publicKey, 10_000_000_000n);
+    svm.airdrop(businessUser.publicKey, 10_000_000_000n);
   });
   
-  it("should complete the full KYC and token lifecycle", async () => {
+  it("should demonstrate KYC flows with different verification levels", async () => {
     // STEP 1: Initialize the KYC Oracle
     console.log("1. Initializing KYC Oracle...");
     const kycOracleData = Buffer.alloc(8 + 32 + 8 + 8 + 8); // discriminator + authority + userCount + verifiedUserCount + lastUpdateTime
@@ -166,71 +175,71 @@ describe("MiCA EUR KYC End-to-End Flow", () => {
     expect(oracleAccount).to.not.be.null;
     expect(oracleAccount?.owner.equals(PROGRAM_ID)).to.be.true;
     
-    // STEP 2: Register User1 for KYC verification
-    console.log("2. Registering User1 for KYC verification...");
-    const user1KycData = Buffer.alloc(8 + 32 + 32 + 1 + 1 + 8 + 8 + 32 + 32 + 64);
+    // STEP 2: Register Individual User for KYC verification with Basic level
+    console.log("2. Registering Individual User for KYC verification...");
+    const individualUserKycData = Buffer.alloc(8 + 32 + 32 + 1 + 1 + 8 + 8 + 32 + 32 + 64);
     
     // Write authority
-    kycAuthority.publicKey.toBuffer().copy(user1KycData, 8);
+    kycAuthority.publicKey.toBuffer().copy(individualUserKycData, 8);
     // Write user
-    user1.publicKey.toBuffer().copy(user1KycData, 40);
+    individualUser.publicKey.toBuffer().copy(individualUserKycData, 40);
     // Set status to PENDING
-    user1KycData[72] = KYC_STATUS.PENDING;
-    // Set verification level to NONE
-    user1KycData[73] = VERIFICATION_LEVELS.NONE;
+    individualUserKycData[72] = KYC_STATUS.PENDING;
+    // Set verification level to UNVERIFIED
+    individualUserKycData[73] = VERIFICATION_LEVELS.UNVERIFIED;
     // Write country code "DE" at some offset
-    Buffer.from(germanCountryCode).copy(user1KycData, 100);
+    Buffer.from(germanCountryCode).copy(individualUserKycData, 100);
     // Write BLZ at some offset
-    Buffer.from(deutscheBankBlz).copy(user1KycData, 110);
+    Buffer.from(deutscheBankBlz).copy(individualUserKycData, 110);
     // Copy IBAN hash at some offset
     for (let i = 0; i < ibanHash1.length; i++) {
-      user1KycData[120 + i] = ibanHash1[i];
+      individualUserKycData[120 + i] = ibanHash1[i];
     }
     
-    svm.setAccount(user1KycPda, {
+    svm.setAccount(individualUserKycPda, {
       lamports: 1_000_000_000,
-      data: user1KycData,
+      data: individualUserKycData,
       owner: PROGRAM_ID,
       executable: false,
     });
     
-    // Verify User1 is registered
-    const user1KycAccount = svm.getAccount(user1KycPda);
-    expect(user1KycAccount).to.not.be.null;
-    expect(user1KycAccount?.data[72]).to.equal(KYC_STATUS.PENDING);
+    // Verify Individual User is registered
+    const individualUserKycAccount = svm.getAccount(individualUserKycPda);
+    expect(individualUserKycAccount).to.not.be.null;
+    expect(individualUserKycAccount?.data[72]).to.equal(KYC_STATUS.PENDING);
     
-    // STEP 3: Register User2 for KYC verification
-    console.log("3. Registering User2 for KYC verification...");
-    const user2KycData = Buffer.alloc(8 + 32 + 32 + 1 + 1 + 8 + 8 + 32 + 32 + 64);
+    // STEP 3: Register Business User for KYC verification
+    console.log("3. Registering Business User for KYC verification...");
+    const businessUserKycData = Buffer.alloc(8 + 32 + 32 + 1 + 1 + 8 + 8 + 32 + 32 + 64);
     
     // Write authority
-    kycAuthority.publicKey.toBuffer().copy(user2KycData, 8);
+    kycAuthority.publicKey.toBuffer().copy(businessUserKycData, 8);
     // Write user
-    user2.publicKey.toBuffer().copy(user2KycData, 40);
+    businessUser.publicKey.toBuffer().copy(businessUserKycData, 40);
     // Set status to PENDING
-    user2KycData[72] = KYC_STATUS.PENDING;
-    // Set verification level to NONE
-    user2KycData[73] = VERIFICATION_LEVELS.NONE;
+    businessUserKycData[72] = KYC_STATUS.PENDING;
+    // Set verification level to UNVERIFIED
+    businessUserKycData[73] = VERIFICATION_LEVELS.UNVERIFIED;
     // Write country code "IT" at some offset
-    Buffer.from(italianCountryCode).copy(user2KycData, 100);
+    Buffer.from(italianCountryCode).copy(businessUserKycData, 100);
     // Write BLZ at some offset
-    Buffer.from(commerzbankBlz).copy(user2KycData, 110);
+    Buffer.from(commerzbankBlz).copy(businessUserKycData, 110);
     // Copy IBAN hash at some offset
     for (let i = 0; i < ibanHash2.length; i++) {
-      user2KycData[120 + i] = ibanHash2[i];
+      businessUserKycData[120 + i] = ibanHash2[i];
     }
     
-    svm.setAccount(user2KycPda, {
+    svm.setAccount(businessUserKycPda, {
       lamports: 1_000_000_000,
-      data: user2KycData,
+      data: businessUserKycData,
       owner: PROGRAM_ID,
       executable: false,
     });
     
-    // Verify User2 is registered
-    const user2KycAccount = svm.getAccount(user2KycPda);
-    expect(user2KycAccount).to.not.be.null;
-    expect(user2KycAccount?.data[72]).to.equal(KYC_STATUS.PENDING);
+    // Verify Business User is registered
+    const businessUserKycAccount = svm.getAccount(businessUserKycPda);
+    expect(businessUserKycAccount).to.not.be.null;
+    expect(businessUserKycAccount?.data[72]).to.equal(KYC_STATUS.PENDING);
     
     // STEP 4: Initialize EUR token mint
     console.log("4. Initializing EUR token mint...");
@@ -273,197 +282,151 @@ describe("MiCA EUR KYC End-to-End Flow", () => {
     expect(mintInfoAccount).to.not.be.null;
     expect(mintInfoAccount?.data[236]).to.equal(1); // is_active = true
     
-    // STEP 5: Verify User1 KYC status
-    console.log("5. Updating User1 KYC status to VERIFIED with STANDARD level...");
-    const updatedUser1KycData = Buffer.from(user1KycData);
+    // STEP 5: Create token account for an unverified user (who can only transfer)
+    console.log("5. Creating token account for unverified user...");
+    const unverifiedUserTokenData = Buffer.alloc(ACCOUNT_SIZE);
+    AccountLayout.encode(
+      {
+        mint: mintKeypair.publicKey,
+        owner: unverifiedUser.publicKey,
+        amount: 0n,
+        delegateOption: 0,
+        delegate: PublicKey.default,
+        state: AccountState.Initialized, // Not frozen, even for unverified users
+        isNativeOption: 0,
+        isNative: 0n,
+        closeAuthorityOption: 0,
+        closeAuthority: PublicKey.default,
+        delegatedAmount: 0n,
+      },
+      unverifiedUserTokenData
+    );
+    
+    svm.setAccount(unverifiedUserTokenAccount, {
+      lamports: 1_000_000_000,
+      data: unverifiedUserTokenData,
+      owner: TOKEN_PROGRAM_ID,
+      executable: false,
+    });
+    
+    // Verify unverified user's account is created and not frozen
+    const unverifiedUserTokenAccountInfo = svm.getAccount(unverifiedUserTokenAccount);
+    const unverifiedUserTokenState = AccountLayout.decode(unverifiedUserTokenAccountInfo!.data);
+    expect(unverifiedUserTokenState.state).to.equal(AccountState.Initialized);
+    
+    // STEP 6: Update Individual User's KYC status to VERIFIED with BASIC level
+    console.log("6. Updating Individual User's KYC status to VERIFIED with BASIC level...");
+    const updatedIndividualUserKycData = Buffer.from(individualUserKycData);
     
     // Update status to VERIFIED
-    updatedUser1KycData[72] = KYC_STATUS.VERIFIED;
-    // Update verification level to STANDARD (2)
-    updatedUser1KycData[73] = VERIFICATION_LEVELS.STANDARD;
+    updatedIndividualUserKycData[72] = KYC_STATUS.VERIFIED;
+    // Update verification level to BASIC (1)
+    updatedIndividualUserKycData[73] = VERIFICATION_LEVELS.BASIC;
     // Set expiry time (now + 365 days)
     const expiryTime = BigInt(Date.now() + 365 * 24 * 60 * 60 * 1000);
-    Buffer.from(expiryTime.toString().padStart(8, '0')).copy(updatedUser1KycData, 82);
+    Buffer.from(expiryTime.toString().padStart(8, '0')).copy(updatedIndividualUserKycData, 82);
     
-    svm.setAccount(user1KycPda, {
+    svm.setAccount(individualUserKycPda, {
       lamports: 1_000_000_000,
-      data: updatedUser1KycData,
+      data: updatedIndividualUserKycData,
       owner: PROGRAM_ID,
       executable: false,
     });
     
-    // Verify User1's status is updated
-    const updatedUser1Account = svm.getAccount(user1KycPda);
-    expect(updatedUser1Account?.data[72]).to.equal(KYC_STATUS.VERIFIED);
-    expect(updatedUser1Account?.data[73]).to.equal(VERIFICATION_LEVELS.STANDARD);
+    // Verify Individual User's status is updated
+    const updatedIndividualUserAccount = svm.getAccount(individualUserKycPda);
+    expect(updatedIndividualUserAccount?.data[72]).to.equal(KYC_STATUS.VERIFIED);
+    expect(updatedIndividualUserAccount?.data[73]).to.equal(VERIFICATION_LEVELS.BASIC);
     
-    // STEP 6: Verify User2 KYC status, but only to BASIC level
-    console.log("6. Updating User2 KYC status to VERIFIED with BASIC level...");
-    const updatedUser2KycData = Buffer.from(user2KycData);
+    // STEP 7: Update Business User's KYC status to VERIFIED with STANDARD level
+    console.log("7. Updating Business User's KYC status to VERIFIED with STANDARD level...");
+    const updatedBusinessUserKycData = Buffer.from(businessUserKycData);
     
     // Update status to VERIFIED
-    updatedUser2KycData[72] = KYC_STATUS.VERIFIED;
-    // Update verification level to BASIC (1)
-    updatedUser2KycData[73] = VERIFICATION_LEVELS.BASIC;
+    updatedBusinessUserKycData[72] = KYC_STATUS.VERIFIED;
+    // Update verification level to STANDARD (2)
+    updatedBusinessUserKycData[73] = VERIFICATION_LEVELS.STANDARD;
     // Set expiry time (now + 180 days)
     const expiryTime2 = BigInt(Date.now() + 180 * 24 * 60 * 60 * 1000);
-    Buffer.from(expiryTime2.toString().padStart(8, '0')).copy(updatedUser2KycData, 82);
+    Buffer.from(expiryTime2.toString().padStart(8, '0')).copy(updatedBusinessUserKycData, 82);
     
-    svm.setAccount(user2KycPda, {
+    svm.setAccount(businessUserKycPda, {
       lamports: 1_000_000_000,
-      data: updatedUser2KycData,
+      data: updatedBusinessUserKycData,
       owner: PROGRAM_ID,
       executable: false,
     });
     
-    // Verify User2's status is updated
-    const updatedUser2Account = svm.getAccount(user2KycPda);
-    expect(updatedUser2Account?.data[72]).to.equal(KYC_STATUS.VERIFIED);
-    expect(updatedUser2Account?.data[73]).to.equal(VERIFICATION_LEVELS.BASIC);
+    // Verify Business User's status is updated
+    const updatedBusinessUserAccount = svm.getAccount(businessUserKycPda);
+    expect(updatedBusinessUserAccount?.data[72]).to.equal(KYC_STATUS.VERIFIED);
+    expect(updatedBusinessUserAccount?.data[73]).to.equal(VERIFICATION_LEVELS.STANDARD);
     
-    // STEP 7: Create token accounts for both users (initially frozen)
-    console.log("7. Creating token accounts for both users (initially frozen)...");
+    // STEP 8: Create token accounts for verified users
+    console.log("8. Creating token accounts for verified users...");
     
-    // User1's token account (frozen by default)
-    const user1TokenData = Buffer.alloc(ACCOUNT_SIZE);
+    // Individual user's token account
+    const individualUserTokenData = Buffer.alloc(ACCOUNT_SIZE);
     AccountLayout.encode(
       {
         mint: mintKeypair.publicKey,
-        owner: user1.publicKey,
+        owner: individualUser.publicKey,
         amount: 0n,
         delegateOption: 0,
         delegate: PublicKey.default,
-        state: AccountState.Frozen, // Initially frozen until KYC verified
+        state: AccountState.Initialized, // Not frozen
         isNativeOption: 0,
         isNative: 0n,
         closeAuthorityOption: 0,
         closeAuthority: PublicKey.default,
         delegatedAmount: 0n,
       },
-      user1TokenData
+      individualUserTokenData
     );
     
-    svm.setAccount(user1TokenAccount, {
+    svm.setAccount(individualUserTokenAccount, {
       lamports: 1_000_000_000,
-      data: user1TokenData,
+      data: individualUserTokenData,
       owner: TOKEN_PROGRAM_ID,
       executable: false,
     });
     
-    // User2's token account (frozen by default)
-    const user2TokenData = Buffer.alloc(ACCOUNT_SIZE);
+    // Business user's token account
+    const businessUserTokenData = Buffer.alloc(ACCOUNT_SIZE);
     AccountLayout.encode(
       {
         mint: mintKeypair.publicKey,
-        owner: user2.publicKey,
+        owner: businessUser.publicKey,
         amount: 0n,
         delegateOption: 0,
         delegate: PublicKey.default,
-        state: AccountState.Frozen, // Initially frozen until KYC verified
+        state: AccountState.Initialized, // Not frozen
         isNativeOption: 0,
         isNative: 0n,
         closeAuthorityOption: 0,
         closeAuthority: PublicKey.default,
         delegatedAmount: 0n,
       },
-      user2TokenData
+      businessUserTokenData
     );
     
-    svm.setAccount(user2TokenAccount, {
+    svm.setAccount(businessUserTokenAccount, {
       lamports: 1_000_000_000,
-      data: user2TokenData,
+      data: businessUserTokenData,
       owner: TOKEN_PROGRAM_ID,
       executable: false,
     });
     
-    // Verify both token accounts are created and frozen
-    const user1TokenAccountInfo = svm.getAccount(user1TokenAccount);
-    const user2TokenAccountInfo = svm.getAccount(user2TokenAccount);
+    // STEP 9: Mint tokens to the Individual User (with BASIC verification level)
+    console.log("9. Minting tokens to Individual User (has BASIC verification level)...");
+    const individualMintAmount = 1000_000_000_000n; // 1000 tokens with 9 decimals
     
-    expect(user1TokenAccountInfo).to.not.be.null;
-    expect(user2TokenAccountInfo).to.not.be.null;
-    
-    const user1TokenState = AccountLayout.decode(user1TokenAccountInfo!.data);
-    const user2TokenState = AccountLayout.decode(user2TokenAccountInfo!.data);
-    
-    expect(user1TokenState.state).to.equal(AccountState.Frozen);
-    expect(user2TokenState.state).to.equal(AccountState.Frozen);
-    
-    // STEP 8: Thaw token accounts for KYC-verified users
-    console.log("8. Thawing token accounts for KYC-verified users...");
-    
-    // Thaw User1's account
-    const thawedUser1TokenData = Buffer.alloc(ACCOUNT_SIZE);
+    const individualUserTokenDataWithBalance = Buffer.alloc(ACCOUNT_SIZE);
     AccountLayout.encode(
       {
         mint: mintKeypair.publicKey,
-        owner: user1.publicKey,
-        amount: 0n,
-        delegateOption: 0,
-        delegate: PublicKey.default,
-        state: AccountState.Initialized, // Thawed
-        isNativeOption: 0,
-        isNative: 0n,
-        closeAuthorityOption: 0,
-        closeAuthority: PublicKey.default,
-        delegatedAmount: 0n,
-      },
-      thawedUser1TokenData
-    );
-    
-    svm.setAccount(user1TokenAccount, {
-      lamports: 1_000_000_000,
-      data: thawedUser1TokenData,
-      owner: TOKEN_PROGRAM_ID,
-      executable: false,
-    });
-    
-    // Thaw User2's account
-    const thawedUser2TokenData = Buffer.alloc(ACCOUNT_SIZE);
-    AccountLayout.encode(
-      {
-        mint: mintKeypair.publicKey,
-        owner: user2.publicKey,
-        amount: 0n,
-        delegateOption: 0,
-        delegate: PublicKey.default,
-        state: AccountState.Initialized, // Thawed
-        isNativeOption: 0,
-        isNative: 0n,
-        closeAuthorityOption: 0,
-        closeAuthority: PublicKey.default,
-        delegatedAmount: 0n,
-      },
-      thawedUser2TokenData
-    );
-    
-    svm.setAccount(user2TokenAccount, {
-      lamports: 1_000_000_000,
-      data: thawedUser2TokenData,
-      owner: TOKEN_PROGRAM_ID,
-      executable: false,
-    });
-    
-    // Verify both accounts are now thawed
-    const thawedUser1AccountInfo = svm.getAccount(user1TokenAccount);
-    const thawedUser2AccountInfo = svm.getAccount(user2TokenAccount);
-    
-    const thawedUser1State = AccountLayout.decode(thawedUser1AccountInfo!.data);
-    const thawedUser2State = AccountLayout.decode(thawedUser2AccountInfo!.data);
-    
-    expect(thawedUser1State.state).to.equal(AccountState.Initialized);
-    expect(thawedUser2State.state).to.equal(AccountState.Initialized);
-    
-    // STEP 9: Mint tokens to User1 (who has STANDARD verification level)
-    console.log("9. Minting tokens to User1 (has STANDARD verification level)...");
-    const mintAmount = 1000_000_000_000n; // 1000 tokens with 9 decimals
-    
-    const user1TokenDataWithBalance = Buffer.alloc(ACCOUNT_SIZE);
-    AccountLayout.encode(
-      {
-        mint: mintKeypair.publicKey,
-        owner: user1.publicKey,
-        amount: mintAmount,
+        owner: individualUser.publicKey,
+        amount: individualMintAmount,
         delegateOption: 0,
         delegate: PublicKey.default,
         state: AccountState.Initialized,
@@ -473,33 +436,68 @@ describe("MiCA EUR KYC End-to-End Flow", () => {
         closeAuthority: PublicKey.default,
         delegatedAmount: 0n,
       },
-      user1TokenDataWithBalance
+      individualUserTokenDataWithBalance
     );
     
-    svm.setAccount(user1TokenAccount, {
+    svm.setAccount(individualUserTokenAccount, {
       lamports: 1_000_000_000,
-      data: user1TokenDataWithBalance,
+      data: individualUserTokenDataWithBalance,
       owner: TOKEN_PROGRAM_ID,
       executable: false,
     });
     
-    // Verify User1 received the tokens
-    const user1FinalAccount = svm.getAccount(user1TokenAccount);
-    const user1FinalState = AccountLayout.decode(user1FinalAccount!.data);
+    // Verify Individual User received the tokens
+    const individualUserFinalAccount = svm.getAccount(individualUserTokenAccount);
+    const individualUserFinalState = AccountLayout.decode(individualUserFinalAccount!.data);
     
-    expect(user1FinalState.amount.toString()).to.equal(mintAmount.toString());
+    expect(individualUserFinalState.amount.toString()).to.equal(individualMintAmount.toString());
     
-    // STEP 10: Attempt to transfer tokens from User1 to User2
-    console.log("10. Transferring tokens from User1 to User2...");
+    // STEP 10: Mint tokens to the Business User (with STANDARD verification level)
+    console.log("10. Minting tokens to Business User (has STANDARD verification level)...");
+    const businessMintAmount = 5000_000_000_000n; // 5000 tokens (higher amount for business)
+    
+    const businessUserTokenDataWithBalance = Buffer.alloc(ACCOUNT_SIZE);
+    AccountLayout.encode(
+      {
+        mint: mintKeypair.publicKey,
+        owner: businessUser.publicKey,
+        amount: businessMintAmount,
+        delegateOption: 0,
+        delegate: PublicKey.default,
+        state: AccountState.Initialized,
+        isNativeOption: 0,
+        isNative: 0n,
+        closeAuthorityOption: 0,
+        closeAuthority: PublicKey.default,
+        delegatedAmount: 0n,
+      },
+      businessUserTokenDataWithBalance
+    );
+    
+    svm.setAccount(businessUserTokenAccount, {
+      lamports: 1_000_000_000,
+      data: businessUserTokenDataWithBalance,
+      owner: TOKEN_PROGRAM_ID,
+      executable: false,
+    });
+    
+    // Verify Business User received the tokens
+    const businessUserFinalAccount = svm.getAccount(businessUserTokenAccount);
+    const businessUserFinalState = AccountLayout.decode(businessUserFinalAccount!.data);
+    
+    expect(businessUserFinalState.amount.toString()).to.equal(businessMintAmount.toString());
+    
+    // STEP 11: Transfer tokens from Individual User to Unverified User (which is allowed)
+    console.log("11. Transferring tokens from Individual User to Unverified User...");
     const transferAmount = 200_000_000_000n; // 200 tokens
     
-    // Update User1's balance (subtract transferred amount)
-    const user1AfterTransferData = Buffer.alloc(ACCOUNT_SIZE);
+    // Update Individual User's balance (subtract transferred amount)
+    const individualUserAfterTransferData = Buffer.alloc(ACCOUNT_SIZE);
     AccountLayout.encode(
       {
         mint: mintKeypair.publicKey,
-        owner: user1.publicKey,
-        amount: mintAmount - transferAmount,
+        owner: individualUser.publicKey,
+        amount: individualMintAmount - transferAmount,
         delegateOption: 0,
         delegate: PublicKey.default,
         state: AccountState.Initialized,
@@ -509,22 +507,22 @@ describe("MiCA EUR KYC End-to-End Flow", () => {
         closeAuthority: PublicKey.default,
         delegatedAmount: 0n,
       },
-      user1AfterTransferData
+      individualUserAfterTransferData
     );
     
-    svm.setAccount(user1TokenAccount, {
+    svm.setAccount(individualUserTokenAccount, {
       lamports: 1_000_000_000,
-      data: user1AfterTransferData,
+      data: individualUserAfterTransferData,
       owner: TOKEN_PROGRAM_ID,
       executable: false,
     });
     
-    // Update User2's balance (add transferred amount)
-    const user2AfterTransferData = Buffer.alloc(ACCOUNT_SIZE);
+    // Update Unverified User's balance (add transferred amount)
+    const unverifiedUserAfterTransferData = Buffer.alloc(ACCOUNT_SIZE);
     AccountLayout.encode(
       {
         mint: mintKeypair.publicKey,
-        owner: user2.publicKey,
+        owner: unverifiedUser.publicKey,
         amount: transferAmount,
         delegateOption: 0,
         delegate: PublicKey.default,
@@ -535,50 +533,133 @@ describe("MiCA EUR KYC End-to-End Flow", () => {
         closeAuthority: PublicKey.default,
         delegatedAmount: 0n,
       },
-      user2AfterTransferData
+      unverifiedUserAfterTransferData
     );
     
-    svm.setAccount(user2TokenAccount, {
+    svm.setAccount(unverifiedUserTokenAccount, {
       lamports: 1_000_000_000,
-      data: user2AfterTransferData,
+      data: unverifiedUserAfterTransferData,
       owner: TOKEN_PROGRAM_ID,
       executable: false,
     });
     
     // Verify the transfer was successful
-    const user1AfterTransferAccount = svm.getAccount(user1TokenAccount);
-    const user2AfterTransferAccount = svm.getAccount(user2TokenAccount);
+    const individualUserAfterTransferAccount = svm.getAccount(individualUserTokenAccount);
+    const unverifiedUserAfterTransferAccount = svm.getAccount(unverifiedUserTokenAccount);
     
-    const user1AfterTransferState = AccountLayout.decode(user1AfterTransferAccount!.data);
-    const user2AfterTransferState = AccountLayout.decode(user2AfterTransferAccount!.data);
+    const individualUserAfterTransferState = AccountLayout.decode(individualUserAfterTransferAccount!.data);
+    const unverifiedUserAfterTransferState = AccountLayout.decode(unverifiedUserAfterTransferAccount!.data);
     
-    expect(user1AfterTransferState.amount.toString()).to.equal((mintAmount - transferAmount).toString());
-    expect(user2AfterTransferState.amount.toString()).to.equal(transferAmount.toString());
+    expect(individualUserAfterTransferState.amount.toString()).to.equal((individualMintAmount - transferAmount).toString());
+    expect(unverifiedUserAfterTransferState.amount.toString()).to.equal(transferAmount.toString());
     
-    // STEP 11: Demonstrate attempting to mint to User2 (who only has BASIC level) would fail
-    console.log("11. Simulating an attempt to mint to User2 (only BASIC level)...");
-    // In a real implementation, this would involve making an RPC call and checking for an error
-    // For LiteSVM simulation, we'll just log that it would fail
-    console.log("   This operation would fail because User2 only has BASIC verification level (1)");
-    console.log("   Minting requires STANDARD verification level (2)");
+    // STEP 12: Demonstrate that Unverified User can transfer tokens (to Business User)
+    console.log("12. Transferring tokens from Unverified User to Business User...");
+    const unverifiedTransferAmount = 50_000_000_000n; // 50 tokens
     
-    // STEP 12: Upgrade User2's KYC level to STANDARD
-    console.log("12. Upgrading User2's KYC level to STANDARD...");
-    const upgradedUser2KycData = Buffer.from(updatedUser2KycData);
+    // Update Unverified User's balance (subtract transferred amount)
+    const unverifiedUserAfterSecondTransferData = Buffer.alloc(ACCOUNT_SIZE);
+    AccountLayout.encode(
+      {
+        mint: mintKeypair.publicKey,
+        owner: unverifiedUser.publicKey,
+        amount: transferAmount - unverifiedTransferAmount,
+        delegateOption: 0,
+        delegate: PublicKey.default,
+        state: AccountState.Initialized,
+        isNativeOption: 0,
+        isNative: 0n,
+        closeAuthorityOption: 0,
+        closeAuthority: PublicKey.default,
+        delegatedAmount: 0n,
+      },
+      unverifiedUserAfterSecondTransferData
+    );
     
-    // Update verification level to STANDARD (2)
-    upgradedUser2KycData[73] = VERIFICATION_LEVELS.STANDARD;
-    
-    svm.setAccount(user2KycPda, {
+    svm.setAccount(unverifiedUserTokenAccount, {
       lamports: 1_000_000_000,
-      data: upgradedUser2KycData,
-      owner: PROGRAM_ID,
+      data: unverifiedUserAfterSecondTransferData,
+      owner: TOKEN_PROGRAM_ID,
       executable: false,
     });
     
-    // Verify User2's level is upgraded
-    const finalUser2KycAccount = svm.getAccount(user2KycPda);
-    expect(finalUser2KycAccount?.data[73]).to.equal(VERIFICATION_LEVELS.STANDARD);
+    // Update Business User's balance (add transferred amount)
+    const businessUserAfterTransferData = Buffer.alloc(ACCOUNT_SIZE);
+    AccountLayout.encode(
+      {
+        mint: mintKeypair.publicKey,
+        owner: businessUser.publicKey,
+        amount: businessMintAmount + unverifiedTransferAmount,
+        delegateOption: 0,
+        delegate: PublicKey.default,
+        state: AccountState.Initialized,
+        isNativeOption: 0,
+        isNative: 0n,
+        closeAuthorityOption: 0,
+        closeAuthority: PublicKey.default,
+        delegatedAmount: 0n,
+      },
+      businessUserAfterTransferData
+    );
+    
+    svm.setAccount(businessUserTokenAccount, {
+      lamports: 1_000_000_000,
+      data: businessUserAfterTransferData,
+      owner: TOKEN_PROGRAM_ID,
+      executable: false,
+    });
+    
+    // Verify the transfer was successful
+    const unverifiedUserFinalAccount = svm.getAccount(unverifiedUserTokenAccount);
+    const businessUserUpdatedAccount = svm.getAccount(businessUserTokenAccount);
+    
+    const unverifiedUserFinalState = AccountLayout.decode(unverifiedUserFinalAccount!.data);
+    const businessUserUpdatedState = AccountLayout.decode(businessUserUpdatedAccount!.data);
+    
+    expect(unverifiedUserFinalState.amount.toString()).to.equal((transferAmount - unverifiedTransferAmount).toString());
+    expect(businessUserUpdatedState.amount.toString()).to.equal((businessMintAmount + unverifiedTransferAmount).toString());
+    
+    // STEP 13: Simulate attempt to mint to Unverified User (which should fail)
+    console.log("13. Simulating attempt to mint to Unverified User (should fail)...");
+    console.log("   This operation would fail because Unverified User lacks BASIC verification level");
+    
+    // STEP 14: Demonstrate Individual User (BASIC) redeeming tokens
+    console.log("14. Simulating token redemption by Individual User (BASIC level)...");
+    const redemptionAmount = 500_000_000_000n; // 500 tokens
+    
+    // Update Individual User's balance (subtract redeemed amount)
+    const individualUserAfterRedemptionData = Buffer.alloc(ACCOUNT_SIZE);
+    AccountLayout.encode(
+      {
+        mint: mintKeypair.publicKey,
+        owner: individualUser.publicKey,
+        amount: (individualMintAmount - transferAmount) - redemptionAmount,
+        delegateOption: 0,
+        delegate: PublicKey.default,
+        state: AccountState.Initialized,
+        isNativeOption: 0,
+        isNative: 0n,
+        closeAuthorityOption: 0,
+        closeAuthority: PublicKey.default,
+        delegatedAmount: 0n,
+      },
+      individualUserAfterRedemptionData
+    );
+    
+    svm.setAccount(individualUserTokenAccount, {
+      lamports: 1_000_000_000,
+      data: individualUserAfterRedemptionData,
+      owner: TOKEN_PROGRAM_ID,
+      executable: false,
+    });
+    
+    // Verify the redemption was successful
+    const individualUserFinalRedemptionAccount = svm.getAccount(individualUserTokenAccount);
+    const individualUserFinalRedemptionState = AccountLayout.decode(individualUserFinalRedemptionAccount!.data);
+    
+    expect(individualUserFinalRedemptionState.amount.toString()).to.equal(
+      ((individualMintAmount - transferAmount) - redemptionAmount).toString()
+    );
     
     console.log("✅ End-to-end KYC flow completed successfully!");
   });

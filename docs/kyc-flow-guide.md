@@ -30,10 +30,19 @@ Each user can have one of the following KYC statuses:
 
 Verification levels determine what operations a user can perform:
 
-- **Level 0 (None)**: No verification, cannot perform any operations
-- **Level 1 (Basic)**: Basic verification, can transfer tokens but cannot mint or redeem
-- **Level 2 (Standard)**: Standard verification, can mint, transfer, and redeem tokens
-- **Level 3 (Advanced)**: Advanced verification, can perform all operations with higher limits
+- **Unverified**: Users can transfer tokens but cannot mint or redeem
+- **Basic Verification**: Individual users with verified bank accounts, can mint and redeem tokens
+- **Standard Verification**: Business users with additional compliance checks, can mint and redeem with higher limits
+- **Advanced Verification**: Institutional users with comprehensive compliance checks, highest transaction limits
+
+## Permitted Operations by Verification Level
+
+| Operation | Unverified | Basic | Standard | Advanced |
+|-----------|------------|-------|----------|----------|
+| Transfer  | ✅         | ✅    | ✅       | ✅       |
+| Mint      | ❌         | ✅    | ✅       | ✅       |
+| Redeem    | ❌         | ✅    | ✅       | ✅       |
+| Limits    | Low        | Medium| High     | Highest  |
 
 ## End-to-End KYC Flow
 
@@ -85,11 +94,11 @@ await program.methods
 After off-chain verification, the KYC authority updates the user's status:
 
 ```typescript
-// Update KYC status to Verified with Standard level
+// Update KYC status to Verified with Basic level (individual user)
 await program.methods
   .updateKycStatus(
     { verified: {} }, // KYC status enum
-    2, // Verification level (Standard)
+    1, // Verification level (Basic)
     365 // Expiry days (1 year)
   )
   .accounts({
@@ -103,10 +112,10 @@ await program.methods
 
 ### 4. Create Token Account
 
-Token accounts are initially created with a frozen state:
+Token accounts are initially created and thawed for unverified users to enable transfers:
 
 ```typescript
-// Create a token account (initially frozen)
+// Create a token account
 await program.methods
   .createTokenAccount()
   .accounts({
@@ -122,31 +131,12 @@ await program.methods
   .rpc();
 ```
 
-### 5. Thaw Account
+### 5. Minting Tokens (Requires Basic Verification or Higher)
 
-For KYC-verified users, their accounts can be thawed:
-
-```typescript
-// Thaw a token account after KYC verification
-await program.methods
-  .thawAccount()
-  .accounts({
-    freezeAuthority: freezeAuthority.publicKey,
-    mintInfo: mintInfoPda,
-    mint: mintKeypair.publicKey,
-    tokenAccount: tokenAccountAddress,
-    tokenProgram: TOKEN_2022_PROGRAM_ID,
-  })
-  .signers([freezeAuthority])
-  .rpc();
-```
-
-### 6. Mint Tokens
-
-Only users with Standard verification level (2) or higher can mint tokens:
+Only users with at least Basic verification can mint tokens (convert fiat to MICA EUR):
 
 ```typescript
-// Mint tokens to a KYC-verified user with Standard verification
+// Mint tokens to a user with Basic verification
 await program.methods
   .mintTokens(
     new BN(1000_000_000_000) // 1000 tokens with 9 decimals
@@ -164,12 +154,35 @@ await program.methods
   .rpc();
 ```
 
-### 7. Transfer Tokens
+### 6. Redeeming Tokens (Requires Basic Verification or Higher)
 
-Users with at least Basic verification level (1) can transfer tokens:
+Only users with at least Basic verification can redeem tokens (convert MICA EUR back to fiat):
 
 ```typescript
-// Transfer tokens between KYC-verified users
+// Redeem tokens from a user with Basic verification
+await program.methods
+  .redeemTokens(
+    new BN(500_000_000_000) // 500 tokens
+  )
+  .accounts({
+    user: userWallet.publicKey,
+    tokenAccount: tokenAccountAddress,
+    mint: mintKeypair.publicKey,
+    mintInfo: mintInfoPda,
+    kycUser: kycUserPda,
+    issuer: issuer.publicKey,
+    tokenProgram: TOKEN_2022_PROGRAM_ID,
+  })
+  .signers([userWallet])
+  .rpc();
+```
+
+### 7. Transfer Tokens (Available for All Users)
+
+All users, including unverified ones, can transfer tokens:
+
+```typescript
+// Transfer tokens between users
 await program.methods
   .transfer(
     new BN(100_000_000_000) // 100 tokens

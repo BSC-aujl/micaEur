@@ -183,7 +183,11 @@ Deploy to mainnet:
 
 - **MiCA Compliance**
 
-  - KYC/AML verification for all users
+  - KYC verification system with flexible levels:
+    - Unverified users: Can transfer tokens but cannot mint or redeem
+    - Basic verification: For individuals with verified bank accounts, can mint and redeem
+    - Standard verification: For businesses with additional compliance checks
+    - Advanced verification: For institutional users with comprehensive compliance checks
   - Proof-of-reserve with daily merkle root
   - Freeze/seize capability for regulatory actions
   - Admin dashboard for monitoring
