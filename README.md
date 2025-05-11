@@ -1,139 +1,176 @@
-# MiCA EUR Stablecoin
+# MiCA EUR Token
 
-A MiCA-compliant Euro stablecoin implementation on Solana, designed to meet regulatory requirements while enabling efficient digital transactions.
+This is a Solana program implementing a MiCA-compliant Euro stablecoin using the Token-2022 program, with built-in KYC/AML compliance features.
 
 ## Features
 
-- **Euro-backed**: 1:1 backing with the Euro maintained in regulated financial institutions
-- **MiCA Compliant**: Adheres to Markets in Crypto-Assets regulation requirements
-- **Tiered KYC**: Supports different verification levels for various use cases
-- **AML Controls**: Comprehensive anti-money laundering mechanisms
-- **Blacklisting**: Ability to restrict addresses that violate terms or regulations
-- **Transaction Monitoring**: Integrated system for tracking suspicious activities
-- **Third-Party KYC Integration**: Support for external KYC provider verification
-- **Flexible Redemption**: Easy conversion back to fiat currency for verified users
+- **Token-2022 Extensions**: Uses the latest Solana Token-2022 program with extensions for:
+  - Permanent delegation (for regulatory compliance)
+  - Default account state (frozen by default until KYC verified)
+  - Transfer hooks (for compliance checks)
+  - Metadata pointer (for token standards compliance)
 
-## KYC Levels
+- **KYC Oracle**: Built-in KYC verification system with:
+  - User registration
+  - Verification levels
+  - Expiry dates
+  - Country codes
+  - Banking information (BLZ, IBAN hash)
 
-The stablecoin implements three KYC verification levels:
+- **Regulatory Controls**:
+  - Account freezing
+  - Token seizure
+  - Blacklisting
 
-| Level | Name | Purpose |
-|-------|------|---------|
-| 0 | None | Basic token ownership and transfers |
-| 1 | User | Individual KYC for redemption and most services |
-| 2 | Business | Company verification for institutional use cases |
+- **Reserve Backing**:
+  - Merkle tree-based reserve proofs
+  - IPFS storage for reserve documentation
 
-## Token Usage Rules
+## Project Structure
 
-- **Basic Ownership**: Any non-blacklisted address can own and transfer tokens
-- **Redemption**: Requires "User" KYC for individuals or "Business" KYC for companies
-- **DeFi Services**: Liquidity pools and lending services may require KYC depending on the provider and user
+```
+mica_eur/
+├── programs/            # Solana program source code
+│   └── mica_eur/        # Main program directory
+│       ├── src/         # Rust source files
+│       └── Cargo.toml   # Rust dependencies
+├── app/                 # Web frontend (if applicable)
+├── tests/               # Test suite
+│   ├── unit/            # Unit tests
+│   └── utils/           # Test utilities
+├── scripts/             # Build and deployment scripts
+└── target/              # Build artifacts
+```
 
-## Architecture
-
-The project consists of multiple components:
-
-1. **Token Contract**: Core token functionality with MiCA compliance features
-2. **KYC Oracle**: Verifies and stores user identity information
-3. **AML System**: Monitors transactions and manages alerts
-4. **Blacklist Registry**: Maintains a list of restricted addresses
-5. **Admin Interface**: Tools for token issuer to manage compliance
-6. **User Interface**: Web app for token holders to manage their tokens
-
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - Solana CLI tools
-- Anchor framework
-- Node.js and npm
-- Typescript
+- Anchor Framework 0.28.0+
+- Node.js 18+
+- Rust and Cargo
 
-### Installation
+## Setup
 
 1. Clone the repository
-   ```bash
-   git clone https://github.com/yourusername/mica-eur.git
-   cd mica-eur
-   ```
+```bash
+git clone https://github.com/yourusername/mica_eur.git
+cd mica_eur
+```
 
 2. Install dependencies
-   ```bash
-   npm install
-   ```
-
-3. Build the program
-   ```bash
-   npm run build
-   ```
-
-4. Run tests
-   ```bash
-   npm test
-   ```
-
-## Development
-
-### Directory Structure
-
-- `/programs`: Solana program source code
-- `/app`: Frontend application
-- `/tests`: Test files
-- `/docs`: Documentation
-
-### Testing
-
-Run all tests:
 ```bash
-npm test
+npm install
 ```
 
-Run specific test categories:
+3. Set up environment variables
 ```bash
-npm run test:kyc     # KYC functionality tests
-npm run test:token   # Token operations tests
-npm run test:aml     # AML system tests
+./scripts/setup-env.sh
 ```
 
-## Documentation
+## Building
 
-- [KYC and AML System](docs/kyc-aml-system.md)
-- [Token Specification](docs/token-specification.md)
-- [API Documentation](docs/api-docs.md)
+Build the program:
+```bash
+./scripts/build.sh
+```
 
-## Contributing
+This will:
+1. Build the Rust program
+2. Generate the IDL file
+3. Create JavaScript/TypeScript bindings
 
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details.
+## Testing
+
+This project has several types of tests to ensure the code quality:
+
+### Unit Tests
+
+1. **Rust Unit Tests** - These test internal functions of the Solana programs
+
+   ```bash
+   cd programs/mica_eur
+   cargo test
+   ```
+
+2. **TypeScript Unit Tests** - These test specific modules:
+
+   ```bash
+   # Run all unit tests
+   npm run test:unit
+
+   # Run only KYC Oracle tests
+   npm run test:kyc
+
+   # Run only Token-2022 mint tests
+   npm run test:token
+   
+   # Run KYC end-to-end flow test
+   npm run test:kyc-flow
+   ```
+
+3. **Integration Tests** - These test the whole program:
+
+   ```bash
+   npm run test
+   ```
+
+4. **Full Test Suite** - Run all tests in sequence:
+   ```bash
+   npm run test:full
+   ```
+
+### KYC End-to-End Testing
+
+The project includes a comprehensive KYC flow test that demonstrates the complete lifecycle:
+
+1. **Initialize KYC Oracle** - Set up the KYC verification authority
+2. **Register Users** - Register users for KYC with different verification levels
+3. **Update KYC Status** - Process KYC verification with various status outcomes
+4. **Token Operations** - Test token operations that depend on KYC verification:
+   - Create token accounts (initially frozen)
+   - Thaw accounts after KYC verification
+   - Mint tokens to verified users
+   - Transfer tokens between verified users
+
+Run the KYC end-to-end test:
+
+```bash
+npm run test:kyc-flow
+```
+
+For more detailed information about the KYC flow, see [KYC Flow Guide](docs/kyc-flow-guide.md).
+
+## Development Workflow
+
+1. Make changes to the Rust program
+2. Run `./scripts/build.sh` to build
+3. Run tests to verify your changes
+4. Deploy to devnet for further testing
+
+## Mock Test Environment
+
+For quick iteration, the project supports a mock test environment that doesn't require a connection to a Solana cluster.
+
+To run tests in mock mode:
+```bash
+MOCK_TEST_MODE=true npm run test:unit
+```
+
+## Deployment
+
+Deploy to devnet:
+```bash
+./scripts/deploy.sh devnet
+```
+
+Deploy to mainnet:
+```bash
+./scripts/deploy.sh mainnet
+```
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
-
-## Disclaimer
-
-This implementation is intended for demonstration purposes only and should be thoroughly audited before use in a production environment. The developers are not responsible for any losses incurred through the use of this software.
-
-## Contact
-
-For inquiries, please contact [your-email@example.com](mailto:your-email@example.com)
-
-## 🏆 Hackathon Project
-
-This project was developed for a hackathon to demonstrate the integration of Solana's technology with European banking regulations.
-
-## 📦 Versions
-
-This project uses the following versions:
-
-| Component                    | Version |
-| ---------------------------- | ------- |
-| Anchor                       | 0.30.1  |
-| Solana                       | 1.18.17 |
-| SPL Token-2022               | 2.0.6   |
-| SPL Token                    | 4.0.0   |
-| SPL Associated Token Account | 2.3.0   |
-
-All version information is centralized in the `programs/mica_eur/src/versions.rs` file for easy maintenance.
+[Insert license information here]
 
 ## 🌟 Features
 
@@ -289,43 +326,6 @@ MIT
 - [Team Member 2] - Smart Contract Specialist
 - [Team Member 3] - Banking API Integration
 - [Team Member 4] - Frontend Developer
-
-## Testing
-
-This project has several types of tests to ensure the code quality:
-
-### Unit Tests
-
-1. **Rust Unit Tests** - These test internal functions of the Solana programs
-
-   ```bash
-   cd programs/mica_eur
-   cargo test
-   ```
-
-2. **TypeScript Unit Tests** - These test specific modules:
-
-   ```bash
-   # Run all unit tests
-   npm run test:unit
-
-   # Run only KYC Oracle tests
-   npm run test:kyc
-
-   # Run only Token-2022 mint tests
-   npm run test:token
-   ```
-
-3. **Integration Tests** - These test the whole program:
-
-   ```bash
-   npm run test
-   ```
-
-4. **Full Test Suite** - Run all tests in sequence:
-   ```bash
-   npm run test:full
-   ```
 
 ## Environment Setup
 
