@@ -15,6 +15,5 @@ codegen-units = 1
 
 # Specify specific dependency versions for the workspace
 [workspace.dependencies]
-solana-program = "=1.18.17"
 solana-program-test = "=1.18.17"
 solana-sdk = "=1.18.17"

@@ -1,0 +1,12 @@
+[package]
+name = "mica_eur_litesvm_tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+litesvm = "0.6.1"
+anchor-lang = "=0.30.1"
+solana-sdk = "=2.2.0"
+
+# Path to the actual program
+mica_eur = { path = "..", features = ["no-entrypoint"] } 

@@ -1,13 +1,14 @@
 [toolchain]
-anchor_version = "0.30.1"
-solana_version = "1.18.17"
+anchor_version = "0.31.1"
+solana_version = "2.1.0"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.localnet]
-mica_eur = "FqyFQg8TEaxKNGd5LqHRMBKfNVQHeiohorXRiu2dATZX"
+mica_eur = "miCAkL5vq1JXvQbmbWR1L16RgH8Szzx9XPHeCqGkWCL"
+mica_eur_new = "9x3tkUkajECAgPvS59YTAdD7VZRMRckrPxFC4MZspup5"
 
 [registry]
 url = "https://api.apr.dev"
@@ -21,3 +22,13 @@ test = "yarn run ts-mocha -p ./tests/tsconfig.json -t 1000000 tests/**/*.ts"
 test-unit = "yarn run ts-mocha -p ./tests/tsconfig.json -t 1000000 tests/unit/**/*.ts"
 test-kyc = "yarn run ts-mocha -p ./tests/tsconfig.json -t 1000000 tests/unit/kyc_oracle.spec.ts"
 test-token = "yarn run ts-mocha -p ./tests/tsconfig.json -t 1000000 tests/unit/token_mint.spec.ts"
+
+[workspace]
+types = "target/types"
+members = ["programs/*"]
+
+[test]
+startup_wait = 5000
+
+[test.validator]
+url = "https://api.devnet.solana.com"
