@@ -48,9 +48,13 @@ while [ "$#" -gt 0 ]; do
       TEST_TYPE="basic"
       shift
       ;;
+    --litesvm)
+      TEST_TYPE="litesvm"
+      shift
+      ;;
     *)
       echo "Unknown option: $1"
-      echo "Usage: $0 [--full|--basic]"
+      echo "Usage: $0 [--full|--basic|--litesvm]"
       exit 1
       ;;
   esac
@@ -63,6 +67,9 @@ if [ "$TEST_TYPE" = "full" ]; then
   npm run test:jest:full
 elif [ "$TEST_TYPE" = "basic" ]; then
   npm run test:jest -- --testMatch="**/tests/jest/mica-eur.test.ts"
+elif [ "$TEST_TYPE" = "litesvm" ]; then
+  echo "Running LiteSVM tests (no validator required)..."
+  npm run test:jest:litesvm
 else
   npm run test:jest
 fi

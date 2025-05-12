@@ -12,6 +12,7 @@
     "test": "anchor test",
     "test:jest": "jest --config jest.config.js",
     "test:jest:full": "jest --config jest.config.js --testMatch=\"**/tests/jest/mica-eur-full.test.ts\"",
+    "test:jest:litesvm": "jest --config jest.config.js --testMatch=\"**/tests/jest/mica-eur-litesvm.test.ts\"",
     "test:jest:script": "./scripts/run-jest-tests.sh",
     "deploy": "anchor deploy",
     "clean": "rm -rf target/deploy target/idl .anchor",
