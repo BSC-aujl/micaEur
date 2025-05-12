@@ -7,90 +7,39 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check && eslint . --ext .ts",
     "format": "prettier --write \"**/*.{js,ts,json}\"",
     "format:check": "prettier --check \"**/*.{js,ts,json}\"",
-    "setup": "./scripts/setup.sh",
-    "setup:rust": "./scripts/setup.sh --rust",
-    "setup:solana": "./scripts/setup.sh --solana",
-    "setup:anchor": "./scripts/setup.sh --anchor",
-    "setup:env": "./scripts/setup.sh --env",
-    "setup:keys": "./scripts/setup.sh --keys",
-    "build": "./scripts/build.sh",
-    "build:skip-bpf": "./scripts/build.sh --skip-bpf",
-    "test": "./scripts/test.sh --all",
-    "deploy": "./scripts/deploy.sh",
-    "deploy:devnet": "./scripts/deploy.sh --network devnet",
-    "deploy:testnet": "./scripts/deploy.sh --network testnet",
-    "deploy:mainnet": "./scripts/deploy.sh --network mainnet",
-    "prepare": "husky install",
-    "check:cargo-lock": "node scripts/check-lock-version.js",
-    "verify:kyc-levels": "node scripts/verify-kyc-levels.js",
-    "test:precommit": "./scripts/run-precommit-tests.sh",
-    "precommit": "lint-staged && node scripts/check-lock-version.js && node scripts/verify-kyc-levels.js && ./scripts/build.sh --skip-bpf && npm run test:precommit",
-    "validator": "solana-test-validator --quiet",
+    "build": "anchor build",
+    "build:skip-bpf": "./scripts/no-bpf-build.sh",
+    "test": "anchor test",
+    "test:jest": "jest --config jest.config.js",
+    "test:jest:full": "jest --config jest.config.js --testMatch=\"**/tests/jest/mica-eur-full.test.ts\"",
+    "test:jest:script": "./scripts/run-jest-tests.sh",
+    "deploy": "anchor deploy",
     "clean": "rm -rf target/deploy target/idl .anchor",
-    "test:functional": "./scripts/run-functional-tests.sh",
-    "test:kyc": "./scripts/run-kyc-tests.sh",
-    "test:token": "./scripts/run-token-tests.sh",
-    "test:aml": "./scripts/run-aml-tests.sh",
-    "test:freeze-seize": "./scripts/run-freeze-seize-tests.sh",
-    "test:kyc-flow": "./scripts/run-kyc-end-to-end-test.sh"
+    "test:functional": "ts-mocha -p ./tsconfig.json -t 1000000 tests/mica-eur-functional-tests.ts",
+    "test:kyc-flow": "ts-mocha -p ./tsconfig.json -t 1000000 tests/kyc-end-to-end-flow.ts"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.31.1",
-    "dotenv": "^16.0.0",
-    "dotenv-vault": "^1.26.2",
-    "rpc-websockets": "^7.5.1"
+    "@coral-xyz/anchor": "^0.30.1",
+    "bn.js": "^5.2.0",
+    "borsh": "^0.7.0",
+    "dotenv": "^16.0.0"
   },
   "devDependencies": {
     "@solana/spl-token": "^0.4.13",
-    "@solana/web3.js": "^1.98.2",
+    "@solana/web3.js": "^1.95.2",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
-    "@types/jest": "^29.5.14",
-    "@types/mocha": "^9.1.0",
-    "@types/node": "^22.15.17",
-    "@typescript-eslint/eslint-plugin": "^5.30.5",
-    "@typescript-eslint/parser": "^5.30.5",
+    "@types/jest": "^29.5.11",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^18.15.0",
+    "@babel/preset-typescript": "^7.24.1",
     "chai": "^4.3.4",
-    "eslint": "^8.45.0",
-    "husky": "^8.0.3",
     "jest": "^29.7.0",
-    "lint-staged": "^15.2.0",
-    "litesvm": "^0.2.0",
     "mocha": "^9.0.3",
-    "nyc": "^15.1.0",
     "prettier": "^2.6.2",
-    "solana-bankrun": "^0.4.0",
-    "ts-jest": "^29.3.2",
+    "ts-jest": "^29.1.1",
     "ts-mocha": "^10.0.0",
-    "typescript": "^4.9.5"
-  },
-  "lint-staged": {
-    "*.{js,ts}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ],
-    "*.rs": [
-      "cargo fmt --"
-    ]
-  },
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "exclude": [
-      "**/*.d.ts",
-      "test/**",
-      "tests/fixtures/**",
-      "node_modules/**"
-    ],
-    "all": true,
-    "cache": true,
-    "reporter": [
-      "text",
-      "lcov"
-    ]
+    "typescript": "^4.9.5",
+    "litesvm": "^0.2.0"
   }
 }
