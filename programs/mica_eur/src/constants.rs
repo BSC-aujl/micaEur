@@ -5,6 +5,8 @@ use anchor_spl::token_2022::spl_token_2022::ID as TOKEN_2022_PROGRAM_ID;
 pub const MINT_INFO_SEED: &[u8] = b"mint-info";
 pub const KYC_ORACLE_STATE_SEED: &[u8] = b"kyc-oracle-state";
 pub const KYC_USER_SEED: &[u8] = b"kyc-user";
+pub const AML_AUTHORITY_SEED: &[u8] = b"aml-authority";
+pub const BLACKLIST_SEED: &[u8] = b"blacklist";
 
 // Verification levels for KYC
 pub const MIN_VERIFICATION_LEVEL_FOR_TRANSFERS: u8 = 1;

@@ -1,5 +1,9 @@
-[build]
-target = "bpfel-unknown-unknown"
+[http]
+check-revoke = false
+ssl-version = "tlsv1.3"
 
-[env]
-RUSTFLAGS = "-C link-arg=-z -C link-arg=notext -C link-arg=-z -C link-arg=nocopyreloc"
+[build]
+rustc-wrapper = ""
+
+[net]
+git-fetch-with-cli = true

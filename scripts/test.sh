@@ -11,6 +11,7 @@ VERBOSE=false
 TIMEOUT=60000
 SPECIFIC_TEST=""
 USE_ANCHOR=false
+SPECIFIC_GREP=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -50,9 +51,13 @@ while [ $# -gt 0 ]; do
       SPECIFIC_TEST="$2"
       shift 2
       ;;
+    --grep|-g)
+      SPECIFIC_GREP="$2"
+      shift 2
+      ;;
     *)
       echo "Unknown option: $1"
-      echo "Usage: $0 [--functional|-f] [--anchor|-a] [--unit|-u] [--integration|-i] [--e2e|-e] [--validator|-v] [--verbose] [--timeout|-t TIMEOUT] [--test SPECIFIC_TEST]"
+      echo "Usage: $0 [--functional|-f] [--anchor|-a] [--unit|-u] [--integration|-i] [--e2e|-e] [--validator|-v] [--verbose] [--timeout|-t TIMEOUT] [--test SPECIFIC_TEST] [--grep|-g SPECIFIC_GREP]"
       exit 1
       ;;
   esac
@@ -101,36 +106,39 @@ if [ "$START_VALIDATOR" = true ]; then
   fi
 fi
 
+# Determine grep args if provided
+GREP_ARGS=()
+if [ -n "$SPECIFIC_GREP" ]; then
+  GREP_ARGS=( -g "$SPECIFIC_GREP" )
+fi
+
 # Run the appropriate tests
 echo "Running $TEST_TYPE tests..."
 
 # If a specific test is provided, run just that test
 if [ -n "$SPECIFIC_TEST" ]; then
-  echo "Running specific test: $SPECIFIC_TEST"
-  npx ts-mocha -p ./tsconfig.json -t $TIMEOUT "$SPECIFIC_TEST"
+  echo "Running specific test file: $SPECIFIC_TEST"
+  npx ts-mocha -p ./tsconfig.json -t $TIMEOUT "$SPECIFIC_TEST" "${GREP_ARGS[@]}"
 else
   case "$TEST_TYPE" in
     "functional")
-      echo "Running functional tests..."
-      npx ts-mocha -p ./tsconfig.json -t $TIMEOUT tests/mica-eur-functional-tests.ts
-      ;;
+      TEST_PATTERN="tests/mica-eur-functional-tests.ts";;
     "unit")
-      echo "Running unit tests..."
-      npx ts-mocha -p ./tsconfig.json -t $TIMEOUT "tests/unit/**/*.ts"
-      ;;
+      TEST_PATTERN="tests/unit/**/*.ts";;
     "integration")
-      echo "Running integration tests..."
-      npx ts-mocha -p ./tsconfig.json -t $TIMEOUT "tests/integration/**/*.ts"
-      ;;
+      TEST_PATTERN="tests/integration/**/*.ts";;
     "e2e")
-      echo "Running e2e tests..."
-      npx ts-mocha -p ./tsconfig.json -t $TIMEOUT "tests/e2e/**/*.ts"
-      ;;
+      TEST_PATTERN="tests/e2e/**/*.ts";;
     *)
       echo "Unknown test type: $TEST_TYPE"
-      exit 1
-      ;;
+      exit 1;;
   esac
+  if [ -n "$SPECIFIC_GREP" ]; then
+    echo "Running tests matching $TEST_PATTERN with grep \"$SPECIFIC_GREP\""
+  else
+    echo "Running tests matching $TEST_PATTERN"
+  fi
+  npx ts-mocha -p ./tsconfig.json -t $TIMEOUT "$TEST_PATTERN" "${GREP_ARGS[@]}"
 fi
 
 TEST_RESULT=$?

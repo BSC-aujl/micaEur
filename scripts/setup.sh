@@ -62,10 +62,24 @@ fi
 if [ "$SETUP_RUST" = true ]; then
   echo "Setting up Rust..."
   
-  # Install latest stable Rust (compatible with Anchor 0.31.1)
-  echo "Installing latest stable Rust..."
-  rustup install stable
-  rustup default stable
+  # Install Rust nightly
+  echo "Installing Rust nightly-2025-05-11..."
+  rustup install nightly-2025-05-11
+  rustup default nightly-2025-05-11
+  rustup component add rustfmt clippy --toolchain nightly-2025-05-11
+  rustup target add bpfel-unknown-none --toolchain nightly-2025-05-11
+  
+  # Create or update rust-toolchain.toml
+  cat > rust-toolchain.toml << EOF
+[toolchain]
+channel = "nightly-2025-05-11" 
+components = ["rustfmt", "clippy"]
+targets = ["bpfel-unknown-none"]
+profile = "minimal"
+EOF
+  
+  # Set for this directory
+  rustup override set nightly-2025-05-11
   
   # Verify Rust version
   echo "Verifying Rust version:"
@@ -76,9 +90,9 @@ fi
 if [ "$SETUP_SOLANA" = true ]; then
   echo "Setting up Solana..."
   
-  # Set Solana to 2.1.22 (compatible with Anchor 0.31.1)
-  echo "Setting Solana to version 2.1.22..."
-  sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+  # Set Solana to 1.18.17
+  echo "Setting Solana to version 1.18.17..."
+  sh -c "$(curl -sSfL https://release.solana.com/v1.18.17/install)"
   
   # Verify Solana version
   echo "Verifying Solana version:"
@@ -94,19 +108,31 @@ if [ "$SETUP_ANCHOR" = true ]; then
     echo "Anchor not found. Installing Anchor..."
     echo "Installing AVM (Anchor Version Manager)..."
     cargo install --git https://github.com/coral-xyz/anchor avm --force
-    echo "Installing Anchor 0.31.1..."
-    avm install 0.31.1
-    avm use 0.31.1
+    echo "Installing Anchor 0.30.1..."
+    avm install 0.30.1
+    avm use 0.30.1
   else
     # Ensure correct version
-    echo "Ensuring Anchor version 0.31.1..."
-    avm install 0.31.1
-    avm use 0.31.1
+    echo "Ensuring Anchor version 0.30.1..."
+    avm install 0.30.1
+    avm use 0.30.1
   fi
   
   # Verify Anchor version
   echo "Verifying Anchor version:"
   anchor --version
+  
+  # Update Anchor.toml dependency if needed
+  if grep -q "\[dependencies\]" Anchor.toml; then
+    # Section exists, check if proc-macro2 is already pinned
+    if ! grep -q "proc-macro2" Anchor.toml; then
+      # Add proc-macro2 entry
+      sed -i '/\[dependencies\]/a proc-macro2 = "=1.0.94"' Anchor.toml
+    fi
+  else
+    # Add section and dependency
+    echo -e "\n[dependencies]\nproc-macro2 = \"=1.0.94\"" >> Anchor.toml
+  fi
 fi
 
 # Setup environment variables

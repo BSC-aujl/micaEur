@@ -28,8 +28,12 @@ else
   VALIDATOR_PID=""
 fi
 
+# Deploy the program to localnet
+echo "🚀 Deploying program to localnet before running tests..."
+anchor deploy
+
 # Check if the program is deployed
-PROGRAM_ID="DCUKPkoLJs8rNQcJS7a37eHhyggTer2WMnb239qRyRKT"
+PROGRAM_ID=$(node -e "console.log(require('./target/idl/mica_eur.json').address)")
 if ! solana account $PROGRAM_ID &>/dev/null; then
   echo "⚠️ Program not found at $PROGRAM_ID"
   echo "You may need to deploy the program first using 'anchor deploy' or './scripts/deploy.sh'"

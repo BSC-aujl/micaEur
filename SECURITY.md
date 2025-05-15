@@ -1,6 +1,103 @@
-# Security Policy & DORA Compliance
+# Security Policy
 
-This document outlines our approach to security and compliance with the Digital Operational Resilience Act (DORA) for the MiCA EUR stablecoin.
+This document outlines security procedures and policies for the MiCA EUR stablecoin.
+
+## Reporting a Vulnerability
+
+The MiCA EUR team takes security vulnerabilities seriously. We appreciate your efforts to responsibly disclose your findings and will make every effort to acknowledge your contributions.
+
+To report a security issue, please email [security@example.com](mailto:security@example.com) with a description of the issue, the steps you took to create it, affected versions, and if known, mitigations. Our security team will respond within 24 hours.
+
+We request that you:
+- Allow us time to investigate and address the vulnerability before disclosing it to the public
+- Avoid exploiting the vulnerability or revealing it to others
+- Provide sufficient information to reproduce the vulnerability
+
+## Security Measures
+
+The MiCA EUR stablecoin implements several security measures:
+
+### Access Control
+
+- Strict permission management for critical actions
+- Role-based access control for administrative operations
+- Multi-signature authorization for high-value operations
+
+### Secure Development
+
+- Comprehensive code reviews before deployment
+- Continuous integration with security scanning
+- Regular third-party security audits
+
+### Operational Security
+
+- Regular updates to address potential vulnerabilities
+- Monitoring systems for suspicious activity
+- Incident response procedures
+
+### Smart Contract Security
+
+- Formal verification for critical components
+- Program Design with defense-in-depth principles
+- Circuit breakers and rate limiting
+
+## Security Features
+
+The MiCA EUR stablecoin includes the following security features:
+
+### Token Freeze
+
+The stablecoin supports account freezing capabilities required by MiCA regulations:
+
+```rust
+pub fn freeze_account(ctx: Context<FreezeAccount>) -> Result<()> {
+    // Implementation details
+}
+```
+
+### Token Seizure
+
+For regulatory compliance, the stablecoin includes token seizure functionality:
+
+```rust
+pub fn seize_tokens(ctx: Context<SeizeTokens>, amount: u64) -> Result<()> {
+    // Implementation details
+}
+```
+
+### Blacklisting
+
+The AML system includes blacklisting capabilities:
+
+```rust
+pub fn create_blacklist_entry(ctx: Context<CreateBlacklistEntry>, reason: u8) -> Result<()> {
+    // Implementation details
+}
+```
+
+## Vulnerability Disclosure Timeline
+
+The following is our security disclosure timeline:
+
+1. Security report received and assigned a primary handler
+2. Problem confirmed and list of affected versions determined
+3. Code audit to find any similar problems
+4. Develop fixes for all affected versions
+5. Notify affected users under embargo
+6. Release fixes and update public documentation
+
+## Supported Versions
+
+Security updates will be applied to the following versions:
+
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.0.x   | :white_check_mark: |
+| < 1.0   | :x:                |
+
+## Security Audits
+
+Security audits are regularly conducted by third-party firms. Audit reports will be published at [audits.example.com](https://audits.example.com) after remediation of any discovered issues.
 
 ## DORA Cyber-Resilience Framework
 

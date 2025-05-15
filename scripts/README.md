@@ -1,62 +1,113 @@
-# MiCA EUR Project Scripts
+# Scripts Directory
 
-This directory contains simplified scripts for managing the MiCA EUR project. The scripts are designed to be simple, maintainable, and easy to use.
+Utility scripts for building, testing, and deploying the MiCA EUR stablecoin.
 
-## Core Scripts
+## Setup Scripts
 
-1. **setup.sh** - Sets up the development environment
+- **setup.sh** - Main setup script for installing dependencies
+  ```bash
+  ./setup.sh                # Install all dependencies
+  ./setup.sh --rust         # Install Rust nightly-2025-05-11
+  ./setup.sh --solana       # Install Solana v1.18.17
+  ./setup.sh --anchor       # Install Anchor v0.30.1
+  ./setup.sh --env          # Setup environment variables
+  ./setup.sh --keys         # Generate test keypairs
+  ```
+
+## Build Scripts
+
+- **build.sh** - Main build script
+  ```bash
+  ./build.sh                # Build the program
+  ./build.sh --clean        # Clean and rebuild
+  ./build.sh --skip-lint    # Build without linting (fast build)
+  ```
+
+- **check-lock-version.js** - Verify Cargo.lock version
+- **extract-idl.js** - Extract IDL from compiled program
+- **generate-idl.sh** - Generate and format IDL files
+
+### Build Configuration
+
+The build scripts ensure that the correct versions and configurations are used:
+
+#### Required Toolchain
+
+The project uses a specific Rust toolchain:
+```
+rustc 1.89.0-nightly (ce7e97f73 2025-05-11)
+cargo 1.89.0-nightly (056f5f4f3 2025-05-09)
+```
+
+This is configured in `rust-toolchain.toml`.
+
+#### Common Build Issues and Fixes
+
+1. **Missing `lib.rs` in Project Root**
+
+   Anchor looks for a `lib.rs` file in the project root directory, while the actual program code is in `programs/mica_eur/src/lib.rs`.
+
+   **Solution**: The build script automatically creates a stub `lib.rs` file in the project root.
+
+2. **Multiple Versions of Borsh**
+
+   **Solution**: Pin the `borsh` version in `Cargo.toml` to `0.10.4`.
+
+3. **Incorrect Cargo.lock Version**
+
+   **Solution**: Ensure Cargo.lock is at version 3.
+
+#### Troubleshooting Build Issues
+
+If you encounter build issues:
+
+1. Check the Rust toolchain:
    ```bash
-   # Setup everything (default)
-   ./scripts/setup.sh
-   
-   # Setup specific components
-   ./scripts/setup.sh --rust    # Setup Rust 1.69.0
-   ./scripts/setup.sh --solana  # Setup Solana 1.18.17
-   ./scripts/setup.sh --anchor  # Verify Anchor 0.30.1
-   ./scripts/setup.sh --env     # Setup environment variables
-   ./scripts/setup.sh --keys    # Generate keypairs
+   rustup override set nightly-2025-05-11
    ```
 
-2. **build.sh** - Builds the Solana program
+2. Verify dependency versions in Anchor.toml
+
+3. Clean and rebuild:
    ```bash
-   # Attempt to build with Anchor first, fallback to minimal IDL
-   ./scripts/build.sh
-   
-   # Skip BPF compilation and create minimal IDL
-   ./scripts/build.sh --skip-bpf
+   rm -rf target/deploy
+   rm -rf .anchor
+   ./scripts/build.sh --clean
    ```
 
-3. **test.sh** - Runs tests
-   ```bash
-   # Run smoke tests (default)
-   ./scripts/test.sh
-   
-   # Run specific test types
-   ./scripts/test.sh --smoke        # Run smoke tests
-   ./scripts/test.sh --unit         # Run unit tests
-   ./scripts/test.sh --integration  # Run integration tests
-   ./scripts/test.sh --e2e          # Run end-to-end tests
-   ./scripts/test.sh --all          # Run all tests
-   
-   # Additional options
-   ./scripts/test.sh --validator    # Start local validator for tests
-   ./scripts/test.sh --timeout 120000  # Set custom timeout
-   ```
+## Test Scripts
 
-4. **deploy.sh** - Deploys the program
-   ```bash
-   # Deploy to localnet (default)
-   ./scripts/deploy.sh
-   
-   # Deploy to specific network
-   ./scripts/deploy.sh --network devnet
-   ./scripts/deploy.sh --network testnet
-   ./scripts/deploy.sh --network mainnet
-   
-   # Additional options
-   ./scripts/deploy.sh --skip-build       # Skip build step
-   ./scripts/deploy.sh --keypair KEY_PATH # Use specific keypair
-   ```
+- **test.sh** - Main test runner
+  ```bash
+  ./test.sh --functional    # Run functional tests
+  ./test.sh --anchor        # Run Anchor tests
+  ./test.sh --unit          # Run unit tests
+  ./test.sh --integration   # Run integration tests
+  ./test.sh --e2e           # Run end-to-end tests
+  ./test.sh --validator     # Run tests with a local validator
+  ```
+
+- **run-functional-tests.sh** - Run all functional tests
+- **run-kyc-tests.sh** - Run KYC Oracle tests
+- **run-token-tests.sh** - Run token functionality tests
+- **run-aml-tests.sh** - Run AML authority tests
+- **run-freeze-seize-tests.sh** - Run freeze/seize tests
+- **run-kyc-end-to-end-test.sh** - Run KYC end-to-end tests
+- **run-jest-tests.sh** - Run Jest tests
+- **run-precommit-tests.sh** - Run pre-commit tests
+- **test-precommit.sh** - Test pre-commit hooks
+
+## Deployment Scripts
+
+- **deploy.sh** - Deploy the program
+  ```bash
+  ./deploy.sh               # Deploy to local validator
+  ./deploy.sh --network devnet # Deploy to devnet
+  ```
+
+## Utility Scripts
+
+- **verify-kyc-levels.js** - Verify KYC level configuration
 
 ## NPM Scripts
 
@@ -73,7 +124,7 @@ npm run setup:keys      # Setup test keys only
 
 # Build
 npm run build           # Build program
-npm run build:skip-bpf  # Build without BPF
+npm run build:fast      # Fast build (skip linting)
 
 # Test
 npm run test            # Run all tests
@@ -93,9 +144,5 @@ npm run deploy:mainnet  # Deploy to mainnet
 npm run clean           # Clean artifacts
 npm run validator       # Start local validator
 ```
-
-## Support Scripts
-
-- **check-lock-version.js** - Checks the version of Cargo.lock
 
 The **deprecated** directory contains legacy scripts that were consolidated into the main scripts or are no longer used. 

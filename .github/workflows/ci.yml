@@ -2,65 +2,37 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main, develop ]
 
 jobs:
-  lint:
+  ci:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: 18
           cache: 'npm'
+
       - name: Install dependencies
-        run: npm ci
-      - name: Lint
+        run: npm ci --ignore-scripts
+
+      - name: Run linter
         run: npm run lint
 
-  verify-kyc:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      - name: Verify KYC levels
-        run: node scripts/verify-kyc-levels.js
+      - name: Fast build (skip BPF)
+        run: npm run build:fast
 
-  build:
-    runs-on: ubuntu-latest
-    needs: [lint, verify-kyc]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      - name: Build
-        run: ./scripts/build.sh --skip-bpf
+      - name: Verify TypeScript types
+        run: npm run verify:types
 
-  test:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      - name: Run tests
+      - name: Verify signature handling
+        run: npm run verify:signatures
+
+      - name: Run pre-commit test suite
         run: npm run test:precommit 

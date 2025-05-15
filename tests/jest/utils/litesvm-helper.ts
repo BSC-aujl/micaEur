@@ -1,9 +1,9 @@
 import { LiteSVM } from "litesvm";
-import { 
-  Keypair, 
-  PublicKey, 
+import {
+  Keypair,
+  PublicKey,
   LAMPORTS_PER_SOL,
-  SystemProgram
+  SystemProgram,
 } from "@solana/web3.js";
 import {
   getAssociatedTokenAddressSync,
@@ -13,7 +13,9 @@ import {
   AccountState,
 } from "@solana/spl-token";
 
-export const TOKEN_2022_PROGRAM_ID = new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb');
+export const TOKEN_2022_PROGRAM_ID = new PublicKey(
+  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+);
 
 // Seeds for PDA derivation
 export const KYC_ORACLE_STATE_SEED = Buffer.from("kyc-oracle-state");
@@ -27,14 +29,14 @@ export const KYC_STATUS = {
   VERIFIED: 2,
   REJECTED: 3,
   EXPIRED: 4,
-  SUSPENDED: 5
+  SUSPENDED: 5,
 };
 
 export const VERIFICATION_LEVELS = {
-  UNVERIFIED: 0,    // Can transfer tokens, but not mint or redeem
-  BASIC: 1,         // Individual users with bank accounts, can mint and redeem
-  STANDARD: 2,      // Business users with additional compliance checks
-  ADVANCED: 3       // Institutional users, highest limits
+  UNVERIFIED: 0, // Can transfer tokens, but not mint or redeem
+  BASIC: 1, // Individual users with bank accounts, can mint and redeem
+  STANDARD: 2, // Business users with additional compliance checks
+  ADVANCED: 3, // Institutional users, highest limits
 };
 
 /**
@@ -43,7 +45,7 @@ export const VERIFICATION_LEVELS = {
 export function setupLiteSvmTestEnv(programId: PublicKey) {
   // Create a fresh LiteSVM instance
   const svm = new LiteSVM();
-  
+
   // Create common test keypairs
   const authority = Keypair.generate();
   const issuer = Keypair.generate();
@@ -52,34 +54,34 @@ export function setupLiteSvmTestEnv(programId: PublicKey) {
   const user1 = Keypair.generate();
   const user2 = Keypair.generate();
   const mintKeypair = Keypair.generate();
-  
+
   // Fund accounts with SOL
   svm.airdrop(authority.publicKey, 10n * BigInt(LAMPORTS_PER_SOL));
   svm.airdrop(issuer.publicKey, 10n * BigInt(LAMPORTS_PER_SOL));
   svm.airdrop(user1.publicKey, 10n * BigInt(LAMPORTS_PER_SOL));
   svm.airdrop(user2.publicKey, 10n * BigInt(LAMPORTS_PER_SOL));
-  
+
   // Find PDAs
   const [kycOracleStatePda] = PublicKey.findProgramAddressSync(
     [KYC_ORACLE_STATE_SEED],
     programId
   );
-  
+
   const [user1KycPda] = PublicKey.findProgramAddressSync(
     [KYC_USER_SEED, user1.publicKey.toBuffer()],
     programId
   );
-  
+
   const [user2KycPda] = PublicKey.findProgramAddressSync(
     [KYC_USER_SEED, user2.publicKey.toBuffer()],
     programId
   );
-  
+
   const [mintInfoPda] = PublicKey.findProgramAddressSync(
     [MINT_INFO_SEED, mintKeypair.publicKey.toBuffer()],
     programId
   );
-  
+
   // Get associated token accounts
   const user1TokenAccount = getAssociatedTokenAddressSync(
     mintKeypair.publicKey,
@@ -87,14 +89,14 @@ export function setupLiteSvmTestEnv(programId: PublicKey) {
     false,
     TOKEN_2022_PROGRAM_ID
   );
-  
+
   const user2TokenAccount = getAssociatedTokenAddressSync(
     mintKeypair.publicKey,
     user2.publicKey,
     false,
     TOKEN_2022_PROGRAM_ID
   );
-  
+
   return {
     svm,
     keypairs: {
@@ -104,18 +106,18 @@ export function setupLiteSvmTestEnv(programId: PublicKey) {
       permanentDelegate,
       user1,
       user2,
-      mintKeypair
+      mintKeypair,
     },
     pdas: {
       kycOracleStatePda,
       user1KycPda,
       user2KycPda,
-      mintInfoPda
+      mintInfoPda,
     },
     tokenAccounts: {
       user1TokenAccount,
-      user2TokenAccount
-    }
+      user2TokenAccount,
+    },
   };
 }
 
@@ -130,10 +132,10 @@ export function createKycOracleState(
 ) {
   // Create a simple account data structure
   const accountData = Buffer.alloc(8 + 32 + 8 + 8 + 8); // discriminator + authority + userCount + verifiedUserCount + lastUpdateTime
-  
+
   // Write authority public key
   authority.toBuffer().copy(accountData, 8);
-  
+
   // Set the account
   svm.setAccount(kycOracleStatePda, {
     lamports: LAMPORTS_PER_SOL,
@@ -141,7 +143,7 @@ export function createKycOracleState(
     owner: programId,
     executable: false,
   });
-  
+
   return accountData;
 }
 
@@ -160,25 +162,27 @@ export function createKycUser(
   blz = "10070000",
   ibanHash = new Uint8Array(32).fill(1)
 ) {
-  const accountData = Buffer.alloc(8 + 32 + 32 + 1 + 1 + 8 + 8 + 50 + 50 + 32 + 50);
-  
+  const accountData = Buffer.alloc(
+    8 + 32 + 32 + 1 + 1 + 8 + 8 + 50 + 50 + 32 + 50
+  );
+
   // Write authority and user public keys
   authority.toBuffer().copy(accountData, 8);
   user.toBuffer().copy(accountData, 40);
-  
+
   // Set status and verification level
   accountData[72] = status;
   accountData[73] = verificationLevel;
-  
+
   // Write country code and BLZ at some offset
   Buffer.from(countryCode).copy(accountData, 90);
   Buffer.from(blz).copy(accountData, 100);
-  
+
   // Copy IBAN hash
   for (let i = 0; i < ibanHash.length; i++) {
     accountData[120 + i] = ibanHash[i];
   }
-  
+
   // Set the account
   svm.setAccount(kycUserPda, {
     lamports: LAMPORTS_PER_SOL,
@@ -186,7 +190,7 @@ export function createKycUser(
     owner: programId,
     executable: false,
   });
-  
+
   return accountData;
 }
 
@@ -203,24 +207,26 @@ export function createMintInfo(
   permanentDelegate: PublicKey,
   whitepaperUri = "https://example.com/whitepaper"
 ) {
-  const accountData = Buffer.alloc(8 + 32 + 32 + 32 + 32 + 100 + 1 + 8 + 32 + 50 + 8);
-  
+  const accountData = Buffer.alloc(
+    8 + 32 + 32 + 32 + 32 + 100 + 1 + 8 + 32 + 50 + 8
+  );
+
   // Write mint, issuer, freeze_authority, permanent_delegate
   mint.toBuffer().copy(accountData, 8);
   issuer.toBuffer().copy(accountData, 40);
   freezeAuthority.toBuffer().copy(accountData, 72);
   permanentDelegate.toBuffer().copy(accountData, 104);
-  
+
   // Write whitepaper URI
   Buffer.from(whitepaperUri).copy(accountData, 136);
-  
+
   // Set is_active to true
   accountData[236] = 1;
-  
+
   // Set creation_time to current timestamp
   const timestamp = BigInt(Date.now());
-  Buffer.from(timestamp.toString().padStart(8, '0')).copy(accountData, 237);
-  
+  Buffer.from(timestamp.toString().padStart(8, "0")).copy(accountData, 237);
+
   // Set the account
   svm.setAccount(mintInfoPda, {
     lamports: LAMPORTS_PER_SOL,
@@ -228,7 +234,7 @@ export function createMintInfo(
     owner: programId,
     executable: false,
   });
-  
+
   return accountData;
 }
 
@@ -244,7 +250,7 @@ export function createTokenAccount(
   state = AccountState.Initialized
 ) {
   const tokenData = Buffer.alloc(ACCOUNT_SIZE);
-  
+
   AccountLayout.encode(
     {
       mint,
@@ -261,14 +267,14 @@ export function createTokenAccount(
     },
     tokenData
   );
-  
+
   svm.setAccount(tokenAccount, {
     lamports: LAMPORTS_PER_SOL,
     data: tokenData,
     owner: TOKEN_PROGRAM_ID,
     executable: false,
   });
-  
+
   return tokenData;
 }
 
@@ -284,24 +290,24 @@ export function updateTokenBalance(
   if (!account) {
     throw new Error(`Token account ${tokenAccount.toString()} not found`);
   }
-  
+
   const tokenData = Buffer.from(account.data);
   const decoded = AccountLayout.decode(tokenData);
-  
+
   const updatedTokenData = Buffer.alloc(ACCOUNT_SIZE);
   AccountLayout.encode(
     {
       ...decoded,
-      amount: newAmount
+      amount: newAmount,
     },
     updatedTokenData
   );
-  
+
   svm.setAccount(tokenAccount, {
     ...account,
-    data: updatedTokenData
+    data: updatedTokenData,
   });
-  
+
   return updatedTokenData;
 }
 
@@ -313,26 +319,23 @@ export function getTokenAccountInfo(svm: LiteSVM, tokenAccount: PublicKey) {
   if (!account) {
     throw new Error(`Token account ${tokenAccount.toString()} not found`);
   }
-  
+
   return AccountLayout.decode(account.data);
 }
 
 /**
  * Create a simple mint account
  */
-export function createMintAccount(
-  svm: LiteSVM,
-  mint: PublicKey
-) {
+export function createMintAccount(svm: LiteSVM, mint: PublicKey) {
   // Minimal dummy mint data
   const mintData = Buffer.alloc(82);
-  
+
   svm.setAccount(mint, {
     lamports: LAMPORTS_PER_SOL,
     data: mintData,
     owner: TOKEN_2022_PROGRAM_ID,
     executable: false,
   });
-  
+
   return mintData;
-} 
+}

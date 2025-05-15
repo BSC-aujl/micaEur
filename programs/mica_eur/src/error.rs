@@ -43,4 +43,13 @@ pub enum MicaEurError {
     
     #[msg("Token account does not belong to the KYC verified user")]
     TokenAccountOwnerMismatch,
+    
+    #[msg("AML authority is not active")]
+    AmlAuthorityInactive,
+    
+    #[msg("Caller is not a registered AML authority")]
+    UnauthorizedAmlAuthority,
+    
+    #[msg("Blacklist entry already exists for this user")]
+    BlacklistEntryAlreadyExists,
 } 

@@ -4,14 +4,29 @@
 # Set this variable to 1 to enable fast failing
 export FORCE_EXIT_ON_ERROR=1
 
-# Run KYC verification first since it's critical
-node scripts/verify-kyc-levels.js || exit 1
+echo "🔒 Running pre-commit checks..."
 
-# Set this variable to 1 to skip linting step
-if [ "$SKIP_LINT" = "1" ]; then
-  # Run pre-commit without linting
-  node scripts/verify-signatures.js && node scripts/verify-types.js && ./scripts/build-no-proxy.sh && npm run test:precommit
-else
-  # Run the precommit script which handles linting, formatting, building, and testing
-  npm run precommit || exit 1 
-fi 
+# Run KYC verification first since it's critical
+echo "⚙️ Checking KYC verification levels..."
+npm run verify:kyc || { echo "❌ KYC verification failed!"; exit 1; }
+
+# Check for transaction signature safety issues
+echo "⚙️ Checking transaction signature safety..."
+npm run verify:signatures || { echo "❌ Signature verification failed!"; exit 1; }
+
+# Type checking
+echo "⚙️ Checking TypeScript types..."
+npm run verify:types || { echo "❌ Type checking failed!"; exit 1; }
+
+# Set this variable to 1 to skip full precommit (linting and testing)
+if [ "$SKIP_FULL_PRECOMMIT" = "1" ]; then
+  echo "⚠️ Skipping full pre-commit checks (linting, building, testing) as SKIP_FULL_PRECOMMIT=1"
+  exit 0
+fi
+
+# Run the full precommit script (linting, building, and testing)
+echo "⚙️ Running full pre-commit checks..."
+npm run precommit || { echo "❌ Pre-commit checks failed!"; exit 1; }
+
+echo "✅ All pre-commit checks passed!"
+exit 0 

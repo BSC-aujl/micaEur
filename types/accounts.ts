@@ -30,4 +30,4 @@ export interface KycAccount {
   verifier: PublicKey;
   timestamp: BN;
   bump: number;
-} 
+}

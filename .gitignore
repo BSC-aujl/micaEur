@@ -16,6 +16,7 @@ yarn-debug.log
 .env.*
 !.env.example
 !.env.vault
+!**/.env.test.example
 .env.me
 .env.project
 .env.local

@@ -11,6 +11,7 @@ use anchor_spl::{
         state::{AccountState, Mint},
         ID as TOKEN_2022_ID,
     }},
+    token_interface::Token2022,
 };
 use std::str::FromStr;
 
@@ -20,6 +21,7 @@ mod error;
 mod mint_utils;
 mod versions;
 mod merkle_info;
+mod aml;
 
 pub use kyc_oracle::*;
 pub use constants::*;
@@ -274,6 +276,142 @@ pub mod mica_eur {
         msg!("IPFS CID: {}", ipfs_cid_clone); // Use the clone
         
         Ok(())
+    }
+
+    /// Register an AML authority
+    pub fn register_aml_authority(
+        ctx: Context<RegisterAmlAuthority>,
+        authority_id: String,
+        powers: u8,
+    ) -> Result<()> {
+        aml::register_aml_authority(ctx, authority_id, powers)
+    }
+
+    /// Create a blacklist entry for a user
+    pub fn create_blacklist_entry(
+        ctx: Context<CreateBlacklistEntry>,
+        reason: u8,
+    ) -> Result<()> {
+        aml::create_blacklist_entry(ctx, reason)
+    }
+
+    /// Deactivate an AML authority (issuer or regulator only)
+    pub fn deactivate_aml_authority(
+        ctx: Context<DeactivateAmlAuthority>,
+    ) -> Result<()> {
+        aml::deactivate_aml_authority(ctx)
+    }
+
+    /// Deactivate (un-blacklist) a blacklist entry (AML authority only)
+    pub fn deactivate_blacklist_entry(
+        ctx: Context<DeactivateBlacklistEntry>,
+    ) -> Result<()> {
+        aml::deactivate_blacklist_entry(ctx)
+    }
+
+    /// Update the powers of an AML authority (issuer or regulator only)
+    pub fn update_aml_authority_powers(
+        ctx: Context<UpdateAmlAuthorityPowers>,
+        new_powers: u8,
+    ) -> Result<()> {
+        aml::update_aml_authority_powers(ctx, new_powers)
+    }
+
+    // ---------------- AML context types ----------------
+    #[derive(Accounts)]
+    pub struct RegisterAmlAuthority<'info> {
+        #[account(mut)]
+        pub authority: Signer<'info>,
+
+        #[account(
+            init,
+            payer = authority,
+            seeds = [AML_AUTHORITY_SEED, authority.key().as_ref()],
+            bump,
+            space = 8 + std::mem::size_of::<crate::aml::AmlAuthority>() + 64,
+        )]
+        pub aml_authority: Account<'info, crate::aml::AmlAuthority>,
+
+        pub system_program: Program<'info, System>,
+    }
+
+    #[derive(Accounts)]
+    pub struct CreateBlacklistEntry<'info> {
+        #[account(mut)]
+        pub authority: Signer<'info>,
+
+        #[account(
+            mut,
+            seeds = [AML_AUTHORITY_SEED, authority.key().as_ref()],
+            bump,
+            has_one = authority,
+        )]
+        pub aml_authority: Account<'info, crate::aml::AmlAuthority>,
+
+        /// CHECK: only the key is used for PDA seeds
+        pub user: UncheckedAccount<'info>,
+
+        #[account(
+            init,
+            payer = authority,
+            seeds = [BLACKLIST_SEED, user.key().as_ref()],
+            bump,
+            space = 8 + std::mem::size_of::<crate::aml::BlacklistEntry>(),
+        )]
+        pub blacklist_entry: Account<'info, crate::aml::BlacklistEntry>,
+
+        pub system_program: Program<'info, System>,
+    }
+
+    // Context for deactivating an AML authority
+    #[derive(Accounts)]
+    pub struct DeactivateAmlAuthority<'info> {
+        #[account(mut)]
+        pub issuer: Signer<'info>,
+        #[account(
+            mut,
+            seeds = [AML_AUTHORITY_SEED, aml_authority.authority.as_ref()],
+            bump,
+        )]
+        pub aml_authority: Account<'info, crate::aml::AmlAuthority>,
+        pub system_program: Program<'info, System>,
+    }
+
+    // Context for deactivating a blacklist entry
+    #[derive(Accounts)]
+    pub struct DeactivateBlacklistEntry<'info> {
+        #[account(mut)]
+        pub authority: Signer<'info>,
+        #[account(
+            mut,
+            seeds = [AML_AUTHORITY_SEED, authority.key().as_ref()],
+            bump,
+            has_one = authority,
+        )]
+        pub aml_authority: Account<'info, crate::aml::AmlAuthority>,
+        /// CHECK: only the key is used for PDA seeds
+        pub user: UncheckedAccount<'info>,
+        #[account(
+            mut,
+            seeds = [BLACKLIST_SEED, user.key().as_ref()],
+            bump,
+        )]
+        pub blacklist_entry: Account<'info, crate::aml::BlacklistEntry>,
+        pub system_program: Program<'info, System>,
+    }
+
+    // Context for updating AML authority powers
+    #[derive(Accounts)]
+    pub struct UpdateAmlAuthorityPowers<'info> {
+        #[account(mut)]
+        pub issuer: Signer<'info>,
+        #[account(
+            mut,
+            seeds = [AML_AUTHORITY_SEED, aml_authority.authority.as_ref()],
+            bump,
+        )]
+        pub aml_authority: Account<'info, crate::aml::AmlAuthority>,
+        pub system_program: Program<'info, System>,
     }
 }
 

@@ -6,4 +6,4 @@ export default {
   extension: ["ts"],
   // Optional: increase default test timeout
   timeout: 120000,
-}; 
+};
