@@ -6,7 +6,7 @@
     </linearGradient>
     <style>
       .box {
-        fill: rgba(255, 255, 255, 0.1);
+        fill: rgba(255, 255, 255, 0.2);
         stroke: white;
         stroke-width: 2;
       }
@@ -16,6 +16,7 @@
         fill: white;
         text-anchor: middle;
         dominant-baseline: middle;
+        font-weight: bold;
       }
       .arrow {
         stroke: white;
@@ -29,25 +30,25 @@
   </defs>
   <rect width="800" height="300" fill="url(#solanaGradient)" />
   
-  <!-- Step 1 - Wider box-->
-  <rect x="35" y="100" width="220" height="100" rx="10" ry="10" class="box"/>
-  <text x="145" y="150" class="text-label" font-weight="bold">SUSPICIOUS ACTIVITY DETECTED</text>
+  <!-- Step 1 - Wider box -->
+  <rect x="25" y="100" width="240" height="100" rx="10" ry="10" class="box"/>
+  <text x="145" y="150" class="text-label">SUSPICIOUS ACTIVITY DETECTED</text>
   <circle cx="145" cy="70" r="20" fill="none" stroke="white" stroke-width="2"/>
   <text x="145" y="70" class="text-label">1</text>
   
   <!-- Step 2 -->
   <rect x="300" y="100" width="200" height="100" rx="10" ry="10" class="box"/>
-  <text x="400" y="150" class="text-label" font-weight="bold">AML AUTHORITY REVIEW</text>
+  <text x="400" y="150" class="text-label">AML AUTHORITY REVIEW</text>
   <circle cx="400" cy="70" r="20" fill="none" stroke="white" stroke-width="2"/>
   <text x="400" y="70" class="text-label">2</text>
   
   <!-- Step 3 -->
-  <rect x="550" y="100" width="200" height="100" rx="10" ry="10" class="box"/>
-  <text x="650" y="150" class="text-label" font-weight="bold">USER BLACKLISTED</text>
+  <rect x="535" y="100" width="230" height="100" rx="10" ry="10" class="box"/>
+  <text x="650" y="150" class="text-label">USER BLACKLISTED</text>
   <circle cx="650" cy="70" r="20" fill="none" stroke="white" stroke-width="2"/>
   <text x="650" y="70" class="text-label">3</text>
   
   <!-- Arrows -->
-  <line x1="255" y1="150" x2="300" y2="150" class="arrow"/>
-  <line x1="500" y1="150" x2="550" y2="150" class="arrow"/>
+  <line x1="265" y1="150" x2="300" y2="150" class="arrow"/>
+  <line x1="500" y1="150" x2="535" y2="150" class="arrow"/>
 </svg> 
