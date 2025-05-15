@@ -1,5 +1,9 @@
 # MiCA EUR
 
+<p align="center">
+  <img src="assets/micaEur_banner.png" alt="MiCA EUR banner" width="700" />
+</p>
+
 A regulatory-compliant EUR stablecoin implementation on Solana following the Markets in Crypto-Assets (MiCA) regulation framework.
 
 ## Overview
