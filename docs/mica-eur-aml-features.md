@@ -12,6 +12,8 @@ The MiCA EUR stablecoin program implements robust Anti-Money Laundering (AML) co
 
 This system ensures compliance with MiCA and other regulatory frameworks, providing on-chain enforcement and auditability.
 
+![MiCA EUR AML System](./images/mica_eur_aml.svg)
+
 ---
 
 ## AML Account Structures
@@ -151,6 +153,8 @@ flowchart TD
 
 ## Example: Blacklisting and Un-blacklisting a User
 
+![AML Blacklisting Process](./images/aml_blacklisting_process.svg)
+
 ```mermaid
 sequenceDiagram
     participant AML as AML Authority
@@ -187,14 +191,6 @@ sequenceDiagram
 | deactivate_blacklist_entry   | AML Authority        | Un-blacklists a user                          |
 | deactivate_aml_authority     | Issuer/Regulator     | Deactivates an AML authority                  |
 | update_aml_authority_powers  | Issuer/Regulator     | Updates powers of an AML authority            |
-
----
-
-## Visuals for Presentation
-
-- **Flowcharts**: Use the Mermaid diagrams above in your slides (rendered in Markdown viewers or tools like [Mermaid Live Editor](https://mermaid-js.github.io/mermaid-live-editor/)).
-- **Sequence Diagrams**: Show the step-by-step process for blacklisting/un-blacklisting.
-- **Tables**: Summarize account structures and instruction permissions.
 
 ---
 
