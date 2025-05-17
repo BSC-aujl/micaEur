@@ -11,5 +11,10 @@ export default {
     ],
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  testMatch: ["**/tests/jest/**/*.test.ts"],
+  testMatch: [
+    "**/sources/sol-programs/**/tests/**/*.test.ts",
+    "**/sources/interface/tests/**/*.test.ts",
+    "**/sources/kyc-api/tests/**/*.test.ts",
+    "**/sources/app/**/tests/**/*.test.ts",
+  ],
 };

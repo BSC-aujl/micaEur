@@ -1,5 +1,0 @@
-[build]
-target-dir = "../../target"
-
-[alias]
-anchor = "run --package anchor-cli --" 

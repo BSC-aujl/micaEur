@@ -103,22 +103,22 @@ graph TD
     Scripts --> Tests
 
     %% Click Events
-    click UI "https://github.com/bsc-aujl/micaeur/tree/main/app/frontend"
-    click Compliance "https://github.com/bsc-aujl/micaeur/blob/main/app/compliance-api/index.js"
-    click KYC "https://github.com/bsc-aujl/micaeur/blob/main/kyc-api/index.ts"
-    click Webhook "https://github.com/bsc-aujl/micaeur/blob/main/kyc-api/webhook-verification.ts"
-    click SolIntegration "https://github.com/bsc-aujl/micaeur/blob/main/kyc-api/solana-integration.ts"
+    click UI "https://github.com/bsc-aujl/micaeur/tree/main/sources/app/frontend"
+    click Compliance "https://github.com/bsc-aujl/micaeur/blob/main/sources/app/compliance-api/index.js"
+    click KYC "https://github.com/bsc-aujl/micaeur/blob/main/sources/kyc-api/index.ts"
+    click Webhook "https://github.com/bsc-aujl/micaeur/blob/main/sources/kyc-api/webhook-verification.ts"
+    click SolIntegration "https://github.com/bsc-aujl/micaeur/blob/main/sources/kyc-api/solana-integration.ts"
     click Config "https://github.com/bsc-aujl/micaeur/blob/main/Anchor.toml"
-    click Program "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/lib.rs"
-    click KYCOracle "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/kyc_oracle.rs"
-    click AML "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/aml.rs"
-    click MintUtils "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/mint_utils.rs"
-    click Reserve "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/merkle_info.rs"
-    click ErrorDefs "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/error.rs"
-    click Constants "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/constants.rs"
+    click Program "https://github.com/bsc-aujl/micaeur/blob/main/sources/sol-programs/mica_eur/src/lib.rs"
+    click KYCOracle "https://github.com/bsc-aujl/micaeur/blob/main/sources/sol-programs/mica_eur/src/kyc_oracle.rs"
+    click AML "https://github.com/bsc-aujl/micaeur/blob/main/sources/sol-programs/mica_eur/src/aml.rs"
+    click MintUtils "https://github.com/bsc-aujl/micaeur/blob/main/sources/sol-programs/mica_eur/src/mint_utils.rs"
+    click Reserve "https://github.com/bsc-aujl/micaeur/blob/main/sources/sol-programs/mica_eur/src/merkle_info.rs"
+    click ErrorDefs "https://github.com/bsc-aujl/micaeur/blob/main/sources/sol-programs/mica_eur/src/error.rs"
+    click Constants "https://github.com/bsc-aujl/micaeur/blob/main/sources/sol-programs/mica_eur/src/constants.rs"
     click Scripts "https://github.com/bsc-aujl/micaeur/tree/main/scripts/"
-    click Migration "https://github.com/bsc-aujl/micaeur/blob/main/migrations/deploy.ts"
-    click Tests "https://github.com/bsc-aujl/micaeur/tree/main/tests/jest"
+    click Migration "https://github.com/bsc-aujl/micaeur/blob/main/sources/migrations/deploy.ts"
+    click Tests "https://github.com/bsc-aujl/micaeur/tree/main/sources/sol-programs/mica_eur/tests"
 
     %% Styles
     classDef frontend fill:#ADD8E6,stroke:#000,stroke-width:1px
@@ -134,6 +134,29 @@ graph TD
 - Anchor CLI v0.30.1
 - Node.js v16+
 
+## Project Structure
+
+```
+mica_eur/
+├── sources/                  # Main code container
+│   ├── sol-programs/         # Solana programs (Anchor-based)
+│   │   └── mica_eur/         # MiCA EUR stablecoin implementation
+│   │       ├── src/          # Program source code
+│   │       └── tests/        # Program-specific tests
+│   ├── interface/            # TypeScript utilities/APIs
+│   │   ├── clients/          # Program clients
+│   │   ├── types/            # Type definitions
+│   │   └── tests/            # Interface tests
+│   ├── app/                  # Application components
+│   │   ├── compliance-api/   # Compliance API implementation
+│   │   └── frontend/         # Frontend application (to be implemented)
+│   ├── kyc-api/              # KYC API implementation
+│   │   └── tests/            # KYC API tests
+│   └── migrations/           # Deployment migration scripts
+├── docs/                     # Documentation
+└── scripts/                  # Utility scripts
+```
+
 ## Quick Start
 
 ```bash
@@ -147,24 +170,6 @@ anchor build
 
 # Run tests
 npm run test:functional
-```
-
-Each component directory contains its own README.md with specific documentation for that component.
-
-## Project Structure
-
-```
-mica_eur/
-├── app/                       # Application components
-│   ├── compliance-api/        # Compliance API implementation
-│   └── frontend/              # Frontend application
-├── docs/                      # Documentation
-│   └── images/                # Diagrams and illustrations
-├── kyc-api/                   # KYC API implementation
-├── programs/                  # Solana programs
-│   └── mica_eur/              # MiCA EUR stablecoin implementation
-├── scripts/                   # Utility scripts
-└── tests/                     # Test files
 ```
 
 ## Development
@@ -198,28 +203,10 @@ npm run test:freeze-seize  # Freeze/Seize functionality tests
 anchor deploy --provider.cluster devnet
 ```
 
-## Key Processes
+## Component Documentation
 
-### KYC Verification Flow
+Each component directory contains its own README.md with specific documentation:
 
-```mermaid
-flowchart LR
-    U[User Wallet] -->|POST /kyc/initiate| AG[API Gateway]
-    AG -->|createApplicant| OA(Onfido API)
-    AG -->|startWorkflow| OW(Onfido SDK)
-    U -->|POST /kyc/verify| SV[Signature Verifier]
-    OA -->|webhook| AG
-    AG -->|updateStatus| SI[["Solana Integration<br>(kyc-api/solana-integration.ts)"]]
-    SI -->|rpc| KO[KYC Oracle PDA]
-    SI -->|rpc| KU[KYC User PDA]
-```
-
-### AML Controls
-
-The Anti-Money Laundering system includes blacklisting capabilities:
-
-![AML Blacklisting Process](docs/images/aml_blacklisting_process.svg)
-
-## Documentation
-
-Component-specific documentation is available in each directory's README.md file.
+- [Solana Programs](./sources/sol-programs/README.md)
+- KYC API (see original documentation in component directory)
+- Application Components (see original documentation in component directories)

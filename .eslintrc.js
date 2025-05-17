@@ -3,6 +3,10 @@
 module.exports = {
   root: true,
   parser: "@typescript-eslint/parser",
+  parserOptions: {
+    project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
+  },
   plugins: ["@typescript-eslint"],
   extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   rules: {
@@ -14,4 +18,12 @@ module.exports = {
     node: true,
     mocha: true,
   },
+  ignorePatterns: [
+    "node_modules/**",
+    "**/node_modules/**",
+    "dist/**",
+    "build/**",
+    "target/**",
+    "**/.anchor/**",
+  ],
 };

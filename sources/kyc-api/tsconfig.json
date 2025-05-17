@@ -10,5 +10,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"]
-} 
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "**/node_modules/**", "**/*.d.ts"]
+}

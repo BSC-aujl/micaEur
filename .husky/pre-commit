@@ -1,22 +1,48 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Skip all hooks if HUSKY_SKIP_HOOKS is set
+if [ "$HUSKY_SKIP_HOOKS" = "1" ]; then
+  echo "⚠️ Skipping all hooks as HUSKY_SKIP_HOOKS=1"
+  exit 0
+fi
+
 # Set this variable to 1 to enable fast failing
 export FORCE_EXIT_ON_ERROR=1
 
 echo "🔒 Running pre-commit checks..."
 
 # Run KYC verification first since it's critical
-echo "⚙️ Checking KYC verification levels..."
-npm run verify:kyc || { echo "❌ KYC verification failed!"; exit 1; }
+if [ "$SKIP_KYC_CHECK" != "1" ]; then
+  echo "⚙️ Checking KYC verification levels..."
+  npm run verify:kyc || { echo "❌ KYC verification failed!"; exit 1; }
+else
+  echo "⚠️ Skipping KYC verification as SKIP_KYC_CHECK=1"
+fi
 
 # Check for transaction signature safety issues
-echo "⚙️ Checking transaction signature safety..."
-npm run verify:signatures || { echo "❌ Signature verification failed!"; exit 1; }
+if [ "$SKIP_SIGNATURE_CHECK" != "1" ]; then
+  echo "⚙️ Checking transaction signature safety..."
+  npm run verify:signatures || { echo "❌ Signature verification failed!"; exit 1; }
+else
+  echo "⚠️ Skipping signature verification as SKIP_SIGNATURE_CHECK=1"
+fi
 
-# Type checking
-echo "⚙️ Checking TypeScript types..."
-npm run verify:types || { echo "❌ Type checking failed!"; exit 1; }
+# TypeScript type checking
+if [ "$SKIP_TYPE_CHECK" != "1" ]; then
+  echo "⚙️ Checking TypeScript types..."
+  npm run verify:types || { echo "❌ TypeScript type checking failed!"; exit 1; }
+else
+  echo "⚠️ Skipping TypeScript type checking as SKIP_TYPE_CHECK=1"
+fi
+
+# Verify Rust code separately using Cargo
+if [ "$SKIP_RUST_CHECK" != "1" ]; then
+  echo "⚙️ Checking Rust code..."
+  npm run verify:rust || { echo "❌ Rust verification failed!"; exit 1; }
+else
+  echo "⚠️ Skipping Rust verification as SKIP_RUST_CHECK=1"
+fi
 
 # Set this variable to 1 to skip full precommit (linting and testing)
 if [ "$SKIP_FULL_PRECOMMIT" = "1" ]; then
@@ -29,4 +55,4 @@ echo "⚙️ Running full pre-commit checks..."
 npm run precommit || { echo "❌ Pre-commit checks failed!"; exit 1; }
 
 echo "✅ All pre-commit checks passed!"
-exit 0 
+exit 0

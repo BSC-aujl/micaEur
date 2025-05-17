@@ -10,7 +10,7 @@ if [ ! -f "./lib.rs" ]; then
   cat > lib.rs << EOF
 // This is a stub lib.rs file in the project root
 // It's required to satisfy Anchor's path lookup during the build process
-// The actual program code is in programs/mica_eur/src/lib.rs
+// The actual program code is in sources/sol-programs/mica_eur/src/lib.rs
 
 pub fn dummy() {}
 EOF
@@ -49,6 +49,13 @@ echo "Building with Anchor..."
 ANCHOR_BUILD_FLAGS=""
 if [ "$1" == "--skip-lint" ]; then
   ANCHOR_BUILD_FLAGS="--skip-lint"
+  # Skip TypeScript linting but run Rust checks
+  echo "Skipping TypeScript linting but still checking Rust code..."
+  node scripts/verify-rust.js
+else
+  # Run Rust verification with Cargo only on Rust files
+  echo "Verifying Rust sources..."
+  node scripts/verify-rust.js
 fi
 
 anchor build $ANCHOR_BUILD_FLAGS

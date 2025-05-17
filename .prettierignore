@@ -1,7 +1,12 @@
-.anchor
-.DS_Store
-target
 node_modules
 dist
 build
-test-ledger
+target
+.cache
+.anchor
+**/.anchor
+**/node_modules
+**/target
+**/dist
+**/build
+**/.cache

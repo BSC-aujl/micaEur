@@ -1,22 +1,87 @@
-# Anchor and Solana
-.anchor
+# Build directories and artifacts
+node_modules
 target
 **/*.rs.bk
-test-ledger
-.yarn
+.anchor
+.DS_Store
+**/.DS_Store
+dist/
+build/
+*.tsbuildinfo
 
-# Node
-node_modules
-npm-debug.log
-yarn-error.log
-yarn-debug.log
+# Rust specific
+**/*.rs.bk
+**/*.bk
+Cargo.lock
+**/target/
+**/.cargo/
+target/
+target/debug/
+target/release/
+target/deploy/
+target/idl/
 
-# Environment variables
-.env
+# Anchor specific
+.anchor/
+**/.anchor/
+**/idl/
+**/Keypair.json
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
 .env.*
 !.env.example
-!.env.vault
-!**/.env.test.example
+!.env.test.example
+.env
+
+# Keys and sensitive data
+test-keypairs/
+keys/
+**/keys/
+wallet.json
+**/wallet.json
+
+# Test ledger
+test-ledger
+.test-ledger
+**/test-ledger/
+
+# Generated files
+.coderrules
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# Sources build directories
+sources/**/node_modules/
+sources/**/target/
+sources/**/dist/
+sources/**/.anchor/
+sources/**/test-ledger/
+
+# Original files (to be removed after migration)
+/programs/
+/types/
+/interface/
+/tests/
+/kyc-api/
+/app/
+/migrations/
+
+# Yarn
+.yarn
+
+# Environment variables
 .env.me
 .env.project
 .env.local
@@ -25,31 +90,14 @@ yarn-debug.log
 .env.production.local
 
 # Build artifacts
-dist
-build
 *.so
 *.dylib
 *.dll
-
-# IDEs and editors
-.idea
-.vscode
-.cursorrules
-*.swp
-*.swo
-*~
-.DS_Store
 
 # Test artifacts
 test-results
 coverage
 tests/experimental/
-
-# Security and key materials
-keys/
-*.pem
-*.key
-*.cert
 
 # Temporary files
 *.tmp
@@ -61,12 +109,10 @@ coverage/
 .nyc_output/
 *.lcov
 
-# Test keypairs
-test-keypairs/
+# Cursor rules
+.cursorrules
 
 # Config files
 .config/
 
-.env*
 .flaskenv*
-!.env.project

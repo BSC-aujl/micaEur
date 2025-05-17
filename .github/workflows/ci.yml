@@ -25,18 +25,6 @@ jobs:
       - name: Run linter
         run: npm run lint
 
-      - name: Fast build (skip BPF)
-        run: npm run build:fast
-
-      - name: Verify TypeScript types
-        run: npm run verify:types
-
-      - name: Verify signature handling
-        run: npm run verify:signatures
-
-      - name: Run pre-commit test suite
-        run: npm run test:precommit
-
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -49,10 +37,16 @@ jobs:
       - name: Install Solana CLI
         run: |
           curl -sSfL https://release.solana.com/v1.18.11/install | sh -s -- -u /usr/local
-          echo "export PATH=\"$HOME/.local/share/solana/install/active_release/bin:$PATH\"" >> $GITHUB_ENV
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          solana --version
 
       - name: Install Anchor CLI
-        run: cargo install --git https://github.com/coral-xyz/anchor anchor-cli --tag v0.30.1 --locked
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor anchor-cli --tag v0.30.1 --locked
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.cargo/bin:$PATH"
+          anchor --version
 
       - name: Cache Cargo registry
         uses: actions/cache@v4
@@ -68,4 +62,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local/share/solana/install
-          key: ${{ runner.os }}-solana-v1-18-11 
+          key: ${{ runner.os }}-solana-v1-18-11
+
+      - name: Fast build (skip BPF)
+        run: npm run build:fast
+
+      - name: Verify TypeScript types
+        run: npm run verify:types
+
+      - name: Verify signature handling
+        run: npm run verify:signatures
+
+      - name: Run pre-commit test suite
+        run: npm run test:precommit 

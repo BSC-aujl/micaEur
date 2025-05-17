@@ -122,7 +122,7 @@ if [ -n "$SPECIFIC_TEST" ]; then
 else
   case "$TEST_TYPE" in
     "functional")
-      TEST_PATTERN="tests/mica-eur-functional-tests.ts";;
+      TEST_PATTERN="sources/sol-programs/mica_eur/tests/e2e.test.ts";;
     "unit")
       TEST_PATTERN="tests/unit/**/*.ts";;
     "integration")

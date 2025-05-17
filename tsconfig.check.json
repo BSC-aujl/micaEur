@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["mocha", "chai", "node", "jest"]
+  },
+  "include": [
+    "sources/sol-programs/**/*.ts",
+    "sources/interface/**/*.ts",
+    "sources/app/**/*.ts",
+    "sources/kyc-api/**/*.ts",
+    "sources/migrations/**/*.ts",
+    "scripts/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/*.d.ts",
+    "target",
+    "dist",
+    "build",
+    "**/.anchor"
+  ]
+}

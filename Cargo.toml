@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "programs/*"
+    "sources/sol-programs/*"
 ]
 resolver = "2"
 
