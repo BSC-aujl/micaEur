@@ -34,6 +34,99 @@ flowchart TB
     Regulatory --- Freeze
 ```
 
+### Detailed System Diagram
+
+```mermaid
+graph TD
+    %% User Facing Layer
+    subgraph "User Facing Layer"
+        UI["Frontend UI"]:::frontend
+    end
+
+    %% Off-chain Services
+    subgraph "Off-chain Services"
+        Compliance["Compliance API"]:::backend
+        KYC["KYC API"]:::backend
+        Webhook["Webhook Verification"]:::backend
+        SolIntegration["Solana Integration Helper"]:::backend
+    end
+
+    %% On-chain RPC
+    SolRPC[(Solana RPC)]:::onchain
+
+    %% On-chain Program
+    subgraph "On-chain Program (MiCA_EUR)" 
+        Config["Anchor Configuration"]:::onchain
+        Program["MiCA_EUR Program"]:::onchain
+        KYCOracle["KYC Oracle Module"]:::onchain
+        AML["AML Controls Module"]:::onchain
+        MintUtils["Mint & Freeze/Seize Utilities"]:::onchain
+        Reserve["Reserve Verification Module"]:::onchain
+        ErrorDefs["Error Definitions"]:::onchain
+        Constants["Program Constants"]:::onchain
+    end
+
+    %% External & DevOps
+    subgraph "External Services & DevOps"
+        OnfidoAPI["Onfido API"]:::external
+        RegAuth["Regulatory Authority"]:::external
+        Scripts["Deployment & Automation Scripts"]:::external
+        Migration["Migration Script"]:::external
+        Tests["End-to-End & Integration Tests"]:::external
+    end
+
+    %% Connections
+    UI -->|"POST /api/... "| Compliance
+    UI -->|"POST /api/kyc/initiate"| KYC
+
+    Compliance -->|"Verifies & routes"| KYC
+    Compliance -->|"RPC call: mint_to / freeze"| SolRPC
+    KYC -->|"Handles webhooks & data"| Webhook
+    KYC -->|"Uses helper"| SolIntegration
+    KYC -->|"RPC call: kyc_oracle_update"| SolRPC
+
+    KYC -.->|"Send KYC data"| OnfidoAPI
+    OnfidoAPI -.->|"Webhook"| Webhook
+    Compliance -->|"Aggregates KYC/AML"| SolRPC
+
+    SolRPC -->|"invoke"| Program
+    Program --> KYCOracle
+    Program --> AML
+    Program --> MintUtils
+    Program --> Reserve
+    Program --> ErrorDefs
+    Program --> Constants
+
+    RegAuth -.->|"Freeze/Seize request"| MintUtils
+
+    Scripts --> Migration
+    Scripts --> Tests
+
+    %% Click Events
+    click UI "https://github.com/bsc-aujl/micaeur/tree/main/app/frontend"
+    click Compliance "https://github.com/bsc-aujl/micaeur/blob/main/app/compliance-api/index.js"
+    click KYC "https://github.com/bsc-aujl/micaeur/blob/main/kyc-api/index.ts"
+    click Webhook "https://github.com/bsc-aujl/micaeur/blob/main/kyc-api/webhook-verification.ts"
+    click SolIntegration "https://github.com/bsc-aujl/micaeur/blob/main/kyc-api/solana-integration.ts"
+    click Config "https://github.com/bsc-aujl/micaeur/blob/main/Anchor.toml"
+    click Program "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/lib.rs"
+    click KYCOracle "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/kyc_oracle.rs"
+    click AML "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/aml.rs"
+    click MintUtils "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/mint_utils.rs"
+    click Reserve "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/merkle_info.rs"
+    click ErrorDefs "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/error.rs"
+    click Constants "https://github.com/bsc-aujl/micaeur/blob/main/programs/mica_eur/src/constants.rs"
+    click Scripts "https://github.com/bsc-aujl/micaeur/tree/main/scripts/"
+    click Migration "https://github.com/bsc-aujl/micaeur/blob/main/migrations/deploy.ts"
+    click Tests "https://github.com/bsc-aujl/micaeur/tree/main/tests/jest"
+
+    %% Styles
+    classDef frontend fill:#ADD8E6,stroke:#000,stroke-width:1px
+    classDef backend fill:#90EE90,stroke:#000,stroke-width:1px
+    classDef onchain fill:#FFA500,stroke:#000,stroke-width:1px
+    classDef external fill:#D3D3D3,stroke:#000,stroke-width:1px
+```
+
 ## Prerequisites
 
 - Rust nightly-2025-05-11 (specifically `rustc 1.89.0-nightly`)
