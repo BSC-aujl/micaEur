@@ -35,4 +35,37 @@ jobs:
         run: npm run verify:signatures
 
       - name: Run pre-commit test suite
-        run: npm run test:precommit 
+        run: npm run test:precommit
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libssl-dev curl
+
+      - name: Install Solana CLI
+        run: |
+          curl -sSfL https://release.solana.com/v1.18.11/install | sh -s -- -u /usr/local
+          echo "export PATH=\"$HOME/.local/share/solana/install/active_release/bin:$PATH\"" >> $GITHUB_ENV
+
+      - name: Install Anchor CLI
+        run: cargo install --git https://github.com/coral-xyz/anchor anchor-cli --tag v0.30.1 --locked
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Cache Solana install
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/solana/install
+          key: ${{ runner.os }}-solana-v1-18-11 

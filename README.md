@@ -109,17 +109,17 @@ anchor deploy --provider.cluster devnet
 
 ### KYC Verification Flow
 
-The following diagram shows how user verification works:
+Fixed mermaid diagram syntax:
 
 ```mermaid
 flowchart LR
-    U[User Wallet] -->|POST /api/kyc/initiate| AG[API Gateway]
-    AG -->|createApplicant| OA[Onfido API]
-    AG -->|startWorkflow| OW[Onfido SDK]
-    U -->|POST /api/kyc/verify-signature| SV[Signature Verifier]
-    OA -->|webhook (check completed)| AG
-    AG -->|updateKycStatus| SI[Solana Integration]
-    SI -->|rpc| KO[KYC Oracle State PDA]
+    U[User Wallet] -->|POST /kyc/initiate| AG[API Gateway]
+    AG -->|createApplicant| OA(Onfido API)
+    AG -->|startWorkflow| OW(Onfido SDK)
+    U -->|POST /kyc/verify| SV[Signature Verifier]
+    OA -->|webhook| AG
+    AG -->|updateStatus| SI[[Solana Integration\n(kyc-api/solana-integration.ts)]]
+    SI -->|rpc| KO[KYC Oracle PDA]
     SI -->|rpc| KU[KYC User PDA]
 ```
 
