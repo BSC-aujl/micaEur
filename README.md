@@ -109,8 +109,6 @@ anchor deploy --provider.cluster devnet
 
 ### KYC Verification Flow
 
-Fixed mermaid diagram syntax:
-
 ```mermaid
 flowchart LR
     U[User Wallet] -->|POST /kyc/initiate| AG[API Gateway]
@@ -118,7 +116,7 @@ flowchart LR
     AG -->|startWorkflow| OW(Onfido SDK)
     U -->|POST /kyc/verify| SV[Signature Verifier]
     OA -->|webhook| AG
-    AG -->|updateStatus| SI[[Solana Integration\n(kyc-api/solana-integration.ts)]]
+    AG -->|updateStatus| SI[["Solana Integration<br>(kyc-api/solana-integration.ts)"]]
     SI -->|rpc| KO[KYC Oracle PDA]
     SI -->|rpc| KU[KYC User PDA]
 ```
