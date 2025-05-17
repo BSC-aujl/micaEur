@@ -1,4 +1,4 @@
-import * as anchor from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
 
 export const config = {
   programId: "9x3tkUkajECAgPvS59YTAdD7VZRMRckrPxFC4MZspup5",

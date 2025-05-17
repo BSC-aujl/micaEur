@@ -1,4 +1,4 @@
-import { Idl } from "@project-serum/anchor";
+import { Idl } from "@coral-xyz/anchor";
 
 export interface MicaEur extends Idl {
   version: "0.1.0";
@@ -8,6 +8,8 @@ export interface MicaEur extends Idl {
       name: "initialize";
       accounts: [];
       args: [];
+      discriminator: number[];
     }
   ];
+  address: string;
 }
