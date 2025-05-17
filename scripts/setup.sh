@@ -67,7 +67,12 @@ if [ "$SETUP_RUST" = true ]; then
   rustup install nightly-2025-05-11
   rustup default nightly-2025-05-11
   rustup component add rustfmt clippy --toolchain nightly-2025-05-11
+  
+  # Add BPF target if available, but don't fail if unavailable
+  echo "Adding BPF target (bpfel-unknown-none)..."
+  set +e
   rustup target add bpfel-unknown-none --toolchain nightly-2025-05-11
+  set -e
   
   # Create or update rust-toolchain.toml
   cat > rust-toolchain.toml << EOF
