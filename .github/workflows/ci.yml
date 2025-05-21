@@ -30,9 +30,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libssl-dev curl
 
       - name: Setup Solana CLI
-        uses: metaDAOproject/setup-solana@v1.2
-        with:
-          solana-cli-version: '1.18.17'
+        run:
+          sh -c "$(curl -sSfL https://release.solana.com/v1.18.17/install)"
 
       - name: Setup local environment
         run: bash scripts/setup.sh --rust --anchor --env --keys
