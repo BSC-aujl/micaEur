@@ -31,7 +31,7 @@ jobs:
 
       - name: Setup Solana CLI
         run:
-          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.solana.com/v1.18.17/install)"
+          sh -c "$(curl --proto '=https' --tlsv1.3 -sSfL https://release.solana.com/v1.18.17/install)"
 
       - name: Setup local environment
         run: bash scripts/setup.sh --rust --anchor --env --keys
